@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./be
+    container_name: viejobs_backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      - ./be:/app
+      - /app/node_modules # Thêm dòng này để không ghi đè node_modules từ host
+    command: sh -c "npm install && npm start" # Cập nhật command để cài đặt lại package
+
+  frontend:
+    build: ./fe
+    container_name: viejobs_frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    volumes:
+      - ./fe:/app
+      - /app/node_modules  # tránh ghi đè node_modules bên trong container
+    working_dir: /app
+    command: sh -c "npm install && npm run dev -- --host"
