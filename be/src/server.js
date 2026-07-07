@@ -49,7 +49,12 @@ app.use("/api/v1/mbti", mbtiRoute);
 app.use("/api/v1/mi", miRoute);
 app.use("/api/v1/search-history", searchHistoryRoute);
 app.use("/api/v1/notification", notificationRoute);
-
+app.get('/', (req, res) => {
+  res.json({
+    status: "success",
+    message: "Backend API is running successfully!"
+  });
+});
 // error handler
 app.use((err, req, res, next) => {
   res.status(500).json({
