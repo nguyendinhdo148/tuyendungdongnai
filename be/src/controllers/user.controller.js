@@ -148,25 +148,83 @@ export const login = async (req, res, next) => {
 export const refreshToken = async (req, res) => {
   const { refreshToken } = req.cookies;
 
-  // Kiểm tra refresh token
+  if (!refreshToken) {
+    res
+      .clearCookie("accessToken", {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+        path: "/",
+      })
+      .clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+        path: "/",
+      });
+    return res.status(401).json({ message: "No refresh token provided" });
+  }
+
   const user = await User.findOne({ refreshToken });
 
   if (!user || user.refreshTokenExpiry < Date.now()) {
+    res
+      .clearCookie("accessToken", {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+        path: "/",
+      })
+      .clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+        path: "/",
+      });
     return res.status(401).json({ message: "Invalid refresh token" });
   }
 
-  // Tạo token mới
-  const { accessToken, newRefreshToken } = generateTokens(user._id);
+  try {
+    jwt.verify(refreshToken, process.env.REFRESH_SECRET_KEY);
+  } catch (error) {
+    res
+      .clearCookie("accessToken", {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+        path: "/",
+      })
+      .clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+        path: "/",
+      });
+    return res.status(401).json({ message: "Invalid refresh token" });
+  }
 
-  // Cập nhật refresh token mới
+  const { accessToken, refreshToken: newRefreshToken } = generateTokens(user._id);
+
   await User.findByIdAndUpdate(user._id, {
     refreshToken: newRefreshToken,
     refreshTokenExpiry: Date.now() + 7 * 24 * 60 * 60 * 1000,
   });
 
   return res
-    .cookie("accessToken", accessToken)
-    .cookie("refreshToken", newRefreshToken)
+    .cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      path: "/",
+      maxAge: 15 * 60 * 1000,
+    })
+    .cookie("refreshToken", newRefreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      path: "/",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    })
     .json({ success: true });
 };
 

@@ -1,57 +1,83 @@
 import jwt from "jsonwebtoken";
 import { User } from "../models/user.model.js";
 
+const clearAuthCookies = (res) => {
+  res
+    .clearCookie("accessToken", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      path: "/",
+    })
+    .clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      path: "/",
+    });
+};
+
 export const isAuthenticated = async (req, res, next) => {
   try {
-    // const token = req.cookies.token;
     let accessToken = req.cookies.accessToken;
-    /* if (!token) {
-      return res.status(401).json({
-        message: "You are not authenticated",
-        success: false,
-      });
-    }
-    */
+    const refreshToken = req.cookies.refreshToken;
 
-    // Nếu access token hết hạn, thử dùng refresh token
-    if (!accessToken) {
-      const refreshToken = req.cookies.refreshToken;
-      if (!refreshToken) throw new Error("No tokens provided");
+    const sendUnauthorized = (message = "You are not authenticated") => {
+      clearAuthCookies(res);
+      return res.status(401).json({ message, success: false });
+    };
 
-      // Tự verify và tạo accessToken mới
+    const generateAccessFromRefresh = async () => {
+      if (!refreshToken) return null;
+
       const user = await User.findOne({ refreshToken });
       if (!user || user.refreshTokenExpiry < Date.now()) {
-        return res.status(401).json({ message: "Invalid refresh token" });
+        return null;
       }
 
-      accessToken = jwt.sign({ userId: user._id }, process.env.SECRET_KEY, {
+      try {
+        const decodedRefresh = jwt.verify(refreshToken, process.env.REFRESH_SECRET_KEY);
+        if (decodedRefresh.userId.toString() !== user._id.toString()) {
+          return null;
+        }
+      } catch (err) {
+        return null;
+      }
+
+      const newAccessToken = jwt.sign({ userId: user._id }, process.env.SECRET_KEY, {
         expiresIn: "15m",
       });
 
-      // Set lại cookie accessToken cho client nếu muốn
-      res.cookie("accessToken", accessToken, {
+      res.cookie("accessToken", newAccessToken, {
         httpOnly: true,
         sameSite: "none",
         secure: true,
         path: "/",
         maxAge: 15 * 60 * 1000,
       });
-    }
-    // const decoded = await jwt.verify(token, process.env.SECRET_KEY);
-    // if (!decoded) {
-    //   return res.status(401).json({
-    //     message: "Invalid token",
-    //     success: false,
-    //   });
-    // }
-    // req.id = decoded.userId;
 
-    // Verify access token
-    const decoded = jwt.verify(accessToken, process.env.SECRET_KEY);
-    req.id = decoded.userId;
-    next();
+      return newAccessToken;
+    };
+
+    if (!accessToken) {
+      accessToken = await generateAccessFromRefresh();
+      if (!accessToken) return sendUnauthorized("Invalid refresh token");
+    }
+
+    try {
+      const decoded = jwt.verify(accessToken, process.env.SECRET_KEY);
+      req.id = decoded.userId;
+      return next();
+    } catch (err) {
+      accessToken = await generateAccessFromRefresh();
+      if (!accessToken) return sendUnauthorized("Invalid or expired access token");
+
+      const decoded = jwt.verify(accessToken, process.env.SECRET_KEY);
+      req.id = decoded.userId;
+      return next();
+    }
   } catch (error) {
-    next(error);
+    return res.status(401).json({ message: "Authentication failed", success: false });
   }
 };
 
