@@ -43,9 +43,16 @@ const Login = () => {
   const emailNamePart = formData.email.split("@")[0].toLowerCase();
   const isAdmin = emailNamePart.includes("admin");
 
+  const redirectAfterLogin = (userData: typeof user) => {
+    if (!userData) return "/";
+    if (userData.role === "recruiter") return "/recruiter";
+    if (userData.role === "admin") return "/admin";
+    return "/";
+  };
+
   useEffect(() => {
     if (user) {
-      navigate("/");
+      navigate(redirectAfterLogin(user));
     }
   }, [user, navigate]);
 
@@ -122,7 +129,7 @@ const Login = () => {
       if (res.data.success) {
         dispatch(setUser(res.data.user));
         toast.success("Đăng nhập thành công!");
-        navigate("/");
+        navigate(redirectAfterLogin(res.data.user));
       }
     } catch (error) {
       console.error("Login error:", error);
