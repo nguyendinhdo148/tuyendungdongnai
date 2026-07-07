@@ -45,10 +45,7 @@ export const isAuthenticated = async (req, res, next) => {
       });
 
       res.cookie("accessToken", newAccessToken, {
-        httpOnly: true,
-        sameSite: "none",
-        secure: true,
-        path: "/",
+        ...cookieOptions,
         maxAge: 15 * 60 * 1000,
       });
 
