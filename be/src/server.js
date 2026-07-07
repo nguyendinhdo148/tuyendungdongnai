@@ -26,21 +26,8 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-
-const isProduction = process.env.NODE_ENV === "production";
-const clientUrl = process.env.URL_CLIENT;
-const allowedOrigins = [clientUrl].filter(Boolean);
-
 const corsOptions = {
-  origin: (origin, callback) => {
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) return callback(null, true);
-    if (!isProduction) {
-      const isLocal = /^https?:\/\/(localhost|127\.0\.0\.1|\d{1,3}(?:\.\d{1,3}){3})(:\d+)?$/;
-      if (isLocal.test(origin)) return callback(null, true);
-    }
-    callback(new Error("Not allowed by CORS"));
-  },
+  origin: process.env.URL_CLIENT,
   credentials: true,
 };
 
