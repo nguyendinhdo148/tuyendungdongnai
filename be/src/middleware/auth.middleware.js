@@ -1,20 +1,16 @@
 import jwt from "jsonwebtoken";
 import { User } from "../models/user.model.js";
 
+const isProduction = process.env.NODE_ENV === "production";
+const cookieOptions = {
+  httpOnly: true,
+  secure: isProduction,
+  sameSite: isProduction ? "none" : "lax",
+  path: "/",
+};
+
 const clearAuthCookies = (res) => {
-  res
-    .clearCookie("accessToken", {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-      path: "/",
-    })
-    .clearCookie("refreshToken", {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-      path: "/",
-    });
+  res.clearCookie("accessToken", cookieOptions).clearCookie("refreshToken", cookieOptions);
 };
 
 export const isAuthenticated = async (req, res, next) => {

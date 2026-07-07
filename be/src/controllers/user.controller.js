@@ -6,6 +6,20 @@ import cloudinary, { uploadToCloudinary } from "../utils/cloudinary.js";
 import getDataUri from "../utils/datauri.js";
 import { sendMail } from "../services/emailService.js";
 
+const isProduction = process.env.NODE_ENV === "production";
+const cookieOptions = {
+  httpOnly: true,
+  secure: isProduction,
+  sameSite: isProduction ? "none" : "lax",
+  path: "/",
+};
+
+const clearAuthCookies = (res) => {
+  res
+    .clearCookie("accessToken", cookieOptions)
+    .clearCookie("refreshToken", cookieOptions);
+};
+
 const generateTokens = (userId) => {
   const accessToken = jwt.sign({ userId }, process.env.SECRET_KEY, {
     expiresIn: "15m",
@@ -122,17 +136,11 @@ export const login = async (req, res, next) => {
     return res
       .status(200)
       .cookie("accessToken", accessToken, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
-        path: "/",
+        ...cookieOptions,
         maxAge: 15 * 60 * 1000, // 15 phút
       })
       .cookie("refreshToken", refreshToken, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
-        path: "/",
+        ...cookieOptions,
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 ngày
       })
       .json({
@@ -149,57 +157,21 @@ export const refreshToken = async (req, res) => {
   const { refreshToken } = req.cookies;
 
   if (!refreshToken) {
-    res
-      .clearCookie("accessToken", {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
-        path: "/",
-      })
-      .clearCookie("refreshToken", {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
-        path: "/",
-      });
+    clearAuthCookies(res);
     return res.status(401).json({ message: "No refresh token provided" });
   }
 
   const user = await User.findOne({ refreshToken });
 
   if (!user || user.refreshTokenExpiry < Date.now()) {
-    res
-      .clearCookie("accessToken", {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
-        path: "/",
-      })
-      .clearCookie("refreshToken", {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
-        path: "/",
-      });
+    clearAuthCookies(res);
     return res.status(401).json({ message: "Invalid refresh token" });
   }
 
   try {
     jwt.verify(refreshToken, process.env.REFRESH_SECRET_KEY);
   } catch (error) {
-    res
-      .clearCookie("accessToken", {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
-        path: "/",
-      })
-      .clearCookie("refreshToken", {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
-        path: "/",
-      });
+    clearAuthCookies(res);
     return res.status(401).json({ message: "Invalid refresh token" });
   }
 
@@ -212,17 +184,11 @@ export const refreshToken = async (req, res) => {
 
   return res
     .cookie("accessToken", accessToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-      path: "/",
+      ...cookieOptions,
       maxAge: 15 * 60 * 1000,
     })
     .cookie("refreshToken", newRefreshToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-      path: "/",
+      ...cookieOptions,
       maxAge: 7 * 24 * 60 * 60 * 1000,
     })
     .json({ success: true });
@@ -240,19 +206,7 @@ export const logout = async (req, res, next) => {
     });
 
     // Xóa cookies
-    res
-      .clearCookie("accessToken", {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
-        path: "/", // rất quan trọng
-      })
-      .clearCookie("refreshToken", {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
-        path: "/",
-      });
+    clearAuthCookies(res);
 
     return res.json({ success: true });
   } catch (error) {
