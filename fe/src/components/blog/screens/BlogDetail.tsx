@@ -126,9 +126,9 @@ const BlogDetail = () => {
                   </div>
                 </div>
 
-                {/* Tags */}
+                {/* Tags - Đã thêm ?.map để chống lỗi trắng trang */}
                 <div className="flex flex-wrap gap-2">
-                  {singleBlog?.tags.map((tag, index) => (
+                  {singleBlog?.tags?.map((tag, index) => (
                     <Badge
                       key={index}
                       variant="outline"
@@ -144,7 +144,7 @@ const BlogDetail = () => {
               {/* Featured Image */}
               <div className="relative overflow-hidden rounded-2xl shadow-2xl">
                 <img
-                  src={singleBlog?.image.url || "/placeholder.svg"}
+                  src={singleBlog?.image?.url || "/placeholder.svg"}
                   alt={singleBlog?.title}
                   className="w-full h-[400px] md:h-[500px] object-cover transition-transform duration-700 hover:scale-105"
                 />

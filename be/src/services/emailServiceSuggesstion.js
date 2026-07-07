@@ -26,7 +26,7 @@ export const sendSuggestionEmail = async (to, subject, html) => {
   // Cấu trúc payload theo chuẩn API v3 của Brevo
   const payload = {
     sender: {
-      name: "VieJobs",
+      name: "Tuyển dụng Đồng Nai",
       email: senderEmail,
     },
     to: [

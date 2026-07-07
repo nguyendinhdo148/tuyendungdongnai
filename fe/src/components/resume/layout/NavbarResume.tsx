@@ -73,7 +73,7 @@ const NavbarResume = () => {
             className="flex items-center"
           >
             <div className="text-2xl md:text-3xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-600 to-purple-500 bg-clip-text text-transparent">
-              VieJobs CV
+              Tuyển dụng Đồng Nai CV
             </div>
           </motion.div>
         </Link>

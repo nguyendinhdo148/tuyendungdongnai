@@ -134,7 +134,7 @@ const UpdateBlog = () => {
     blogFormData.append("tags", singleBlog?.tags.join(", ") || "");
 
     if (singleBlog?.image?.url) {
-      blogFormData.append("file", singleBlog?.image.url);
+      blogFormData.append("file", singleBlog.image.url);
     }
 
     try {
@@ -169,12 +169,14 @@ const UpdateBlog = () => {
       ...singleBlog,
       image: {
         url:
-          typeof singleBlog.image.url === "string" ? singleBlog.image.url : "",
+          singleBlog.image && typeof singleBlog.image.url === "string"
+            ? singleBlog.image.url
+            : "",
       },
     };
     const original = {
       ...originalData,
-      image: { url: originalData.image.url },
+      image: { url: originalData.image?.url || "" },
     };
     return JSON.stringify(current) !== JSON.stringify(original);
   };

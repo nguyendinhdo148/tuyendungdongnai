@@ -36,16 +36,29 @@ const ThemeSelector = ({
   const [baseWith, setBaseWith] = useState(800);
 
   const [tabValue, setTabValue] = useState("Bản mẫu");
-  const [selectedColorPalette, setSelectedColorPalette] = useState({
-    colors: selectorTheme?.colorPalette,
-    index: -1,
-  });
+
+  // Tìm index của bản mẫu đang được chọn (nếu có), mặc định là 0
+  const initialTemplateIndex = resumeTemplates.findIndex(
+    (t) => t.id === selectorTheme?.theme
+  );
   const [selectedTemplate, setSelectedTemplate] = useState({
-    theme: selectorTheme?.theme || "",
-    index: -1,
+    theme: selectorTheme?.theme || resumeTemplates[0].id,
+    index: initialTemplateIndex !== -1 ? initialTemplateIndex : 0,
   });
 
-  // handle theme change
+  // Tìm index của bảng màu đang được chọn, so sánh chuỗi array (nếu có), mặc định là bảng màu đầu tiên
+  const initialColorIndex = themeColorPalette.themeOne.findIndex(
+    (c) => JSON.stringify(c) === JSON.stringify(selectorTheme?.colorPalette)
+  );
+  const [selectedColorPalette, setSelectedColorPalette] = useState({
+    colors:
+      selectorTheme?.colorPalette && selectorTheme.colorPalette.length > 0
+        ? selectorTheme.colorPalette
+        : themeColorPalette.themeOne[0],
+    index: initialColorIndex !== -1 ? initialColorIndex : 0,
+  });
+
+  // Xử lý khi nhấn nút Hoàn thành
   const handleThemeSelection = () => {
     setSelectorTheme({
       colorPalette: selectedColorPalette?.colors,
@@ -76,7 +89,7 @@ const ThemeSelector = ({
           className="bg-[#eed8fc] text-[#5e2e82] cursor-pointer hover:bg-[#e3c3fa] hover:shadow-md transition"
           onClick={() => handleThemeSelection()}
         >
-          <LuCircleCheckBig className="text-16px" /> Hoàn thành
+          <LuCircleCheckBig className="text-[16px] mr-1" /> Hoàn thành
         </Button>
       </div>
 
@@ -130,11 +143,12 @@ interface ColorPaletteProps {
   isSelected: boolean;
   onSelect: () => void;
 }
+
 const ColorPalette = ({ colors, isSelected, onSelect }: ColorPaletteProps) => {
   return (
     <div
-      className={`h-28 rounded-lg overflow-hidden border-2 cursor-pointer ${
-        isSelected ? "border-purple-500" : "border-gray-200"
+      className={`h-28 rounded-lg overflow-hidden border-2 cursor-pointer transition-all ${
+        isSelected ? "border-purple-500 shadow-md scale-[1.02]" : "border-gray-200 hover:border-purple-300"
       }`}
       onClick={onSelect}
     >

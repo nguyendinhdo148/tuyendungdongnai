@@ -298,7 +298,8 @@ export const suggestions = async (req, res, next) => {
       return res.status(200).json({ suggestions: [], success: true });
     }
 
-    const regexKeyword = new RegExp(keyword, "i");
+    const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regexKeyword = new RegExp(escapedKeyword, "i");
 
     // Truy vấn cơ bản (không truy vấn nested field trong $or trước populate)
     const jobs = await Job.find({ status: "active", approval: "approved" })
@@ -306,7 +307,7 @@ export const suggestions = async (req, res, next) => {
         path: "company",
         select: "name logo",
       })
-      .select("_id title location company")
+      .select("_id title location company category jobType")
       .limit(20) // tăng giới hạn để lọc thêm sau populate
       .lean();
 
@@ -315,7 +316,9 @@ export const suggestions = async (req, res, next) => {
       return (
         regexKeyword.test(job.title) ||
         regexKeyword.test(job.location) ||
-        regexKeyword.test(job.company?.name || "")
+        regexKeyword.test(job.company?.name || "") ||
+        regexKeyword.test(job.category || "") ||
+        regexKeyword.test(job.jobType || "")
       );
     });
 

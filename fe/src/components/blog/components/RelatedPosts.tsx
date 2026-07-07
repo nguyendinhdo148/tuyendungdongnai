@@ -10,7 +10,9 @@ import { RootState } from "@/redux/store";
 import { setRandomBlogs } from "@/redux/blogSlice";
 import { Link } from "react-router-dom";
 
-function formatDate(dateString: string): string {
+// Đã thêm check an toàn cho chuỗi ngày tháng
+function formatDate(dateString?: string): string {
+  if (!dateString) return "";
   const date = new Date(dateString);
   return date.toLocaleDateString("vi", {
     month: "short",
@@ -51,17 +53,19 @@ const RelatedPosts = ({ currentSlug }: { currentSlug: string }) => {
       </div>
 
       <div className="space-y-6">
-        {randomBlogs.map((post) => (
+        {/* Thêm '?.' vào randomBlogs để phòng hờ mảng bị undefined */}
+        {randomBlogs?.map((post) => (
           <div
-            key={post._id}
+            key={post?._id}
             className="group hover:shadow-lg transition-all duration-300 cursor-pointer border border-gray-300 border-l-4 border-l-primary/20 hover:border-l-primary hover:border-gray-400 rounded-lg"
           >
-            <Link to={`/blog/detail/${post.slug}`}>
+            <Link to={`/blog/detail/${post?.slug}`}>
               <CardContent className="p-4">
                 <div className="flex gap-3">
+                  {/* CẬP NHẬT: Thêm '?.' vào post.image.url */}
                   <img
-                    src={post.image.url || "/placeholder.svg?height=80&width=80"}
-                    alt={post.title}
+                    src={post?.image?.url || "/placeholder.svg?height=80&width=80"}
+                    alt={post?.title || "Hình ảnh bài viết"}
                     className="size-24 object-cover rounded-lg flex-shrink-0"
                   />
                   <div className="flex-1 min-w-0">
@@ -69,19 +73,19 @@ const RelatedPosts = ({ currentSlug }: { currentSlug: string }) => {
                       variant="secondary"
                       className="text-xs mb-2 rounded-full border border-gray-300"
                     >
-                      {post.category}
+                      {post?.category || "Chưa phân loại"}
                     </Badge>
                     <h3 className="font-semibold text-base leading-tight mb-2 group-hover:text-primary transition-colors line-clamp-2">
-                      {post.title}
+                      {post?.title}
                     </h3>
                     <div className="flex items-center gap-3 text-xs text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
-                        <span>{formatDate(post.createdAt)}</span>
+                        <span>{formatDate(post?.createdAt)}</span>
                       </div>
                       <div className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
-                        <span>{getReadingTime(post.content)}m</span>
+                        <span>{getReadingTime(post?.content || "")}m</span>
                       </div>
                     </div>
                   </div>

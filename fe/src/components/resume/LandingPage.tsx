@@ -121,7 +121,7 @@ const LandingPage = () => {
                   <div className="flex flex-col items-start">
                     <img
                       src="vj1.png"
-                      alt="viejobs-logo"
+                      alt="Tuyển dụng Đồng Nai-logo"
                       className="h-10 w-auto max-w-[160px] object-contain"
                     />
                     <p className="text-sm text-gray-600 italic font-medium leading-tight">
@@ -382,7 +382,7 @@ const LandingPage = () => {
                 <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 to-purple-400/10 z-10 rounded-2xl"></div>
                 <img
                   src="CV_Template.jpg"
-                  alt="Mẫu CV VieJobs"
+                  alt="Mẫu CV Tuyển dụng Đồng Nai"
                   className="w-full rounded-2xl"
                 />
 
@@ -467,7 +467,7 @@ const LandingPage = () => {
                 transition={{ duration: 0.5, delay: 0.1 }}
                 viewport={{ once: true }}
               >
-                VieJobs CV cung cấp các công cụ mạnh mẽ giúp bạn tạo CV chuyên
+                Tuyển dụng Đồng Nai CV cung cấp các công cụ mạnh mẽ giúp bạn tạo CV chuyên
                 nghiệp và nổi bật
               </motion.p>
             </div>
@@ -634,7 +634,7 @@ const LandingPage = () => {
               </h2>
               <p className="text-gray-600 max-w-2xl mx-auto">
                 Hàng ngàn người đã thành công trong việc tìm kiếm công việc mơ
-                ước với VieJobs CV
+                ước với Tuyển dụng Đồng Nai CV
               </p>
             </motion.div>
 
@@ -644,21 +644,21 @@ const LandingPage = () => {
                   name: "Nguyễn Văn A",
                   position: "Senior Developer",
                   content:
-                    "VieJobs giúp mình tạo CV cực nhanh và đẹp. Nhờ CV từ VieJobs mà mình đã nhận được offer lương cao từ công ty mơ ước!",
+                    "Tuyển dụng Đồng Nai giúp mình tạo CV cực nhanh và đẹp. Nhờ CV từ Tuyển dụng Đồng Nai mà mình đã nhận được offer lương cao từ công ty mơ ước!",
                   rating: 5,
                 },
                 {
                   name: "Trần Thị B",
                   position: "Marketing Manager",
                   content:
-                    "Tôi đã thử nhiều công cụ tạo CV khác nhau, nhưng VieJobs CV là tốt nhất. Giao diện dễ sử dụng và các mẫu CV rất chuyên nghiệp!",
+                    "Tôi đã thử nhiều công cụ tạo CV khác nhau, nhưng Tuyển dụng Đồng Nai CV là tốt nhất. Giao diện dễ sử dụng và các mẫu CV rất chuyên nghiệp!",
                   rating: 5,
                 },
                 {
                   name: "Lê Văn C",
                   position: "UI/UX Designer",
                   content:
-                    "Là một designer, tôi rất khó tính về thiết kế. Nhưng các mẫu CV của VieJobs thực sự ấn tượng và chuyên nghiệp. Highly recommended!",
+                    "Là một designer, tôi rất khó tính về thiết kế. Nhưng các mẫu CV của Tuyển dụng Đồng Nai thực sự ấn tượng và chuyên nghiệp. Highly recommended!",
                   rating: 5,
                 },
               ].map((testimonial, i) => (
@@ -769,7 +769,7 @@ const LandingPage = () => {
           >
             <div className="flex flex-col md:flex-row justify-between items-center">
               <div className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-500 bg-clip-text text-transparent mb-4 md:mb-0">
-                VieJobs CV
+                Tuyển dụng Đồng Nai CV
               </div>
               <div className="flex space-x-6">
                 <Link
@@ -799,7 +799,7 @@ const LandingPage = () => {
               </div>
             </div>
             <div className="text-gray-600 text-sm mt-6">
-              © {new Date().getFullYear()} VieJobs CV - Made with ❤️ in Vietnam
+              © {new Date().getFullYear()} Tuyển dụng Đồng Nai CV - Made with ❤️ in Vietnam
             </div>
           </motion.footer>
         </div>

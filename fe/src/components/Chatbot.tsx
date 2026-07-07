@@ -9,7 +9,7 @@ const Chatbot = () => {
   const [messages, setMessages] = useState([
     {
       from: "bot",
-      text: `👋 Xin chào! Tôi là VieJobs Assistant.\n\nTôi có thể giúp bạn:\n• Gợi ý việc làm phù hợp\n• Tạo CV chuyên nghiệp\n• Tư vấn kỹ năng phỏng vấn\n• Tra cứu lương ngành nghề\n• Giải đáp thắc mắc về tuyển dụng\n\n🔗 Xem danh sách việc làm tại VieJobs: ${URL}/jobs\n🔗 Tạo CV tại VieJobs: ${URL}/resume\n\nBạn muốn bắt đầu với điều gì ?`,
+      text: `👋 Xin chào! Tôi là Tuyển dụng Đồng Nai Assistant.\n\nTôi có thể giúp bạn:\n• Gợi ý việc làm phù hợp\n• Tạo CV chuyên nghiệp\n• Tư vấn kỹ năng phỏng vấn\n• Tra cứu lương ngành nghề\n• Giải đáp thắc mắc về tuyển dụng\n\n🔗 Xem danh sách việc làm tại Tuyển dụng Đồng Nai: ${URL}/jobs\n🔗 Tạo CV tại Tuyển dụng Đồng Nai: ${URL}/resume\n\nBạn muốn bắt đầu với điều gì ?`,
       timestamp: new Date(),
     },
   ]);
@@ -91,7 +91,7 @@ const Chatbot = () => {
                 />
                 <div>
                   <h3 className="font-bold text-blue-900 text-lg flex items-center gap-1">
-                    VieJobs Assistant
+                    Tuyển dụng Đồng Nai Assistant
                     <span className="ml-1 inline-block w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
                   </h3>
                   <p className="text-xs text-blue-500 font-medium">

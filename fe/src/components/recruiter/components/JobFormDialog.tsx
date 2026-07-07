@@ -80,6 +80,9 @@ export const JobFormDialog = ({
   const dispatch = useDispatch();
 
   const { companies } = useSelector((state: RootState) => state.company);
+  const approvedCompanies = companies.filter(
+    (company) => company.approval === "approved"
+  );
 
   // Fetch companies
   const fetchCompanies = useCallback(async () => {
@@ -146,6 +149,14 @@ export const JobFormDialog = ({
     }
     if (!formData.company._id) {
       toast.error("Vui lòng chọn công ty");
+      return;
+    }
+
+    const selectedCompany = companies.find(
+      (company) => company._id === formData.company._id
+    );
+    if (!selectedCompany || selectedCompany.approval !== "approved") {
+      toast.error("Công ty chưa được duyệt nên không thể đăng tin tuyển dụng.");
       return;
     }
     if (formData.salary <= 0) {
@@ -257,6 +268,9 @@ export const JobFormDialog = ({
                 <Label htmlFor="company">
                   Công ty <span className="text-red-700">*</span>
                 </Label>
+                <p className="text-xs text-gray-500">
+                  Chỉ hiển thị các công ty đã được admin duyệt.
+                </p>
                 <Select
                   value={formData.company._id}
                   onValueChange={(value) =>
@@ -265,25 +279,37 @@ export const JobFormDialog = ({
                       company: { ...formData.company, _id: value },
                     })
                   }
+                  disabled={approvedCompanies.length === 0}
                 >
                   <SelectTrigger className="cursor-pointer bg-white">
-                    <SelectValue placeholder="Chọn công ty">
-                      {
-                        companies.find((c) => c._id === formData.company._id)
-                          ?.name
+                    <SelectValue
+                      placeholder={
+                        approvedCompanies.length === 0
+                          ? "Không có công ty nào được duyệt"
+                          : "Chọn công ty"
                       }
+                    >
+                      {approvedCompanies.find(
+                        (c) => c._id === formData.company._id
+                      )?.name}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent className="bg-white max-h-[300px] overflow-y-auto">
-                    {companies.map((company) => (
-                      <SelectItem
-                        className="cursor-pointer hover:bg-gray-100"
-                        key={company._id}
-                        value={company._id}
-                      >
-                        {company.name}
-                      </SelectItem>
-                    ))}
+                    {approvedCompanies.length === 0 ? (
+                      <div className="px-3 py-2 text-sm text-gray-500">
+                        Chưa có công ty nào được duyệt.
+                      </div>
+                    ) : (
+                      approvedCompanies.map((company) => (
+                        <SelectItem
+                          className="cursor-pointer hover:bg-gray-100"
+                          key={company._id}
+                          value={company._id}
+                        >
+                          {company.name}
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </div>

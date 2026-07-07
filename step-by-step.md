@@ -1,4 +1,4 @@
-# Hướng dẫn cài đặt và cấu hình VieJobs
+# Hướng dẫn cài đặt và cấu hình Tuyển dụng Đồng Nai
 
 ## Yêu cầu tiền điều kiện
 
@@ -10,7 +10,7 @@
 ## Cấu trúc dự án
 
 ```
-VieJobs/
+Tuyển dụng Đồng Nai/
 ├── be/ # Backend source code
 │   ├── src/
 │   │   ├── controllers/ # Route controllers
@@ -36,7 +36,7 @@ VieJobs/
 
 ```bash
 git clone <repository-url>
-cd VieJobs
+cd Tuyển dụng Đồng Nai
 ```
 
 ## Bước 2: Cài đặt Backend

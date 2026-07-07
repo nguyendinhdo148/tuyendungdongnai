@@ -1,4 +1,4 @@
-import { Search, Loader2, Sparkles, Clock, X } from "lucide-react";
+import { Search, Loader2, Sparkles, Clock, X, TrendingUp } from "lucide-react";
 import { Button } from "./ui/button";
 import { setSearchedQuery } from "@/redux/jobSlice";
 import { useNavigate } from "react-router-dom";
@@ -17,6 +17,35 @@ interface SearchHistoryItem {
   lastSearchedAt: string;
 }
 
+// Data cho Banner Slider
+const banners = [
+  {
+    id: 1,
+    image: "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?q=80&w=1200&auto=format&fit=crop",
+    title: "Kết Nối Nhân Tài Đồng Nai",
+  },
+  {
+    id: 2,
+    image: "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=1200&auto=format&fit=crop",
+    title: "Việc Làm Hành Chính, Văn Phòng",
+  },
+  {
+    id: 3,
+    image: "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?q=80&w=1200&auto=format&fit=crop",
+    title: "Tuyển Dụng Khu Công Nghiệp",
+  },
+];
+
+// Từ khóa SEO phổ biến (như trên các Group FB)
+const popularKeywords = [
+ 
+  "Việc làm Phường Bình Phước",
+  "Hành chính nhân sự",
+  "Kế toán",
+  "Tuyển công nhân",
+  "Việc làm part-time",
+];
+
 const HeroSection = () => {
   const [query, setQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
@@ -27,6 +56,9 @@ const HeroSection = () => {
   const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([]);
   const [isFetchingHistory, setIsFetchingHistory] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
+  
+  // Slider State
+  const [currentSlide, setCurrentSlide] = useState(0);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
@@ -34,44 +66,121 @@ const HeroSection = () => {
   const navigate = useNavigate();
   const { user } = useSelector((store: RootState) => store.auth);
 
-  const searchJobHandler = async (selectedQuery?: string) => {
+  const normalizeSearchText = (text: string) =>
+    text
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/\s/g, "")
+      .replace(/\./g, "");
+
+  const inferFiltersFromQuery = (rawQuery: string) => {
+    const filters = {
+      location: [] as string[],
+      jobType: [] as string[],
+      salary: [] as string[],
+    };
+    const query = normalizeSearchText(rawQuery);
+
+    if (query.includes("binhphuoc") || query.includes("phuongbinhphuoc")) {
+      filters.location.push("Phường Bình Phước");
+    }
+
+    if (query.includes("parttime") || query.includes("part-time") || query.includes("parttime")) {
+      filters.jobType.push("Part-Time");
+    }
+
+    if (query.includes("hanhchinh") || query.includes("nhansu") || query.includes("nhânsu")) {
+      filters.jobType.push("Hành chính nhân sự");
+    }
+
+    if (query.includes("ketoan") || query.includes("kiemtoan")) {
+      filters.jobType.push("Kế toán / Kiểm toán");
+    }
+
+    if (query.includes("congnhan") || query.includes("sanxuat")) {
+      filters.jobType.push("Công nhân sản xuất");
+    }
+
+    if (query.includes("it") || query.includes("phanmem")) {
+      filters.jobType.push("IT / Phần mềm");
+    }
+
+    if (query.includes("marketing")) {
+      filters.jobType.push("Marketing");
+    }
+
+    if (query.includes("banhang") || query.includes("kinhdoanh")) {
+      filters.jobType.push("Bán hàng / Kinh doanh");
+    }
+
+    if (query.includes("fulltime") || query.includes("toanthoigian")) {
+      filters.jobType.push("Full-Time");
+    }
+
+    if (query.includes("remote") || query.includes("tuxa")) {
+      filters.jobType.push("Remote");
+    }
+
+    if (query.includes("thuctap") || query.includes("intern")) {
+      filters.jobType.push("Internship");
+    }
+
+    if (query.includes("thoa-thuan") || query.includes("thoathuan")) {
+      filters.salary.push("Thỏa thuận");
+    }
+
+    if (query.includes("duoi5") || query.includes("duoi5trieu") || query.includes("dưoi5")) {
+      filters.salary.push("Dưới 5 triệu");
+    }
+
+    return filters;
+  };
+
+  // Auto-play Slider
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % banners.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const searchJobHandler = async (selectedQuery?: string, keepQuery = true) => {
     const finalQuery = selectedQuery || query;
     if (!finalQuery.trim()) return;
     setIsSearching(true);
-    dispatch(setSearchedQuery(finalQuery));
 
-    // Lưu lịch sử tìm kiếm nếu user đã đăng nhập
-    if (user) {
-      try {
-        await axios.post(
-          `${API}/search-history/save`,
-          { query: finalQuery },
-          { withCredentials: true }
-        );
-      } catch (error) {
-        // Silently fail if API fails
-        console.error("Failed to save search history:", error);
+    if (keepQuery) {
+      dispatch(setSearchedQuery(finalQuery));
+      if (user) {
+        try {
+          await axios.post(`${API}/search-history/save`, { query: finalQuery }, { withCredentials: true });
+        } catch (error) {
+          console.error("Failed to save search history:", error);
+        }
       }
     }
 
+    const inferredFilters = inferFiltersFromQuery(finalQuery);
+    const params = new URLSearchParams();
+    if (keepQuery) params.set("query", finalQuery);
+    if (inferredFilters.location.length > 0) params.set("location", inferredFilters.location.join(","));
+    if (inferredFilters.jobType.length > 0) params.set("jobType", inferredFilters.jobType.join(","));
+    if (inferredFilters.salary.length > 0) params.set("salary", inferredFilters.salary.join(","));
+
     await new Promise((resolve) => setTimeout(resolve, 300));
-    navigate(`/browse?query=${finalQuery}`);
+    const q = params.toString();
+    navigate(`/browse${q ? `?${q}` : ""}`);
     setIsSearching(false);
     setShowSuggestions(false);
   };
 
-  // Fetch lịch sử tìm kiếm
   const fetchSearchHistory = async () => {
     if (!user) return;
-
     try {
       setIsFetchingHistory(true);
-      const res = await axios.get(`${API}/search-history`, {
-        withCredentials: true,
-      });
-      if (res.data.success) {
-        setSearchHistory(res.data.searchHistories || []);
-      }
+      const res = await axios.get(`${API}/search-history`, { withCredentials: true });
+      if (res.data.success) setSearchHistory(res.data.searchHistories || []);
     } catch (error) {
       console.error("Failed to fetch search history:", error);
     } finally {
@@ -79,15 +188,12 @@ const HeroSection = () => {
     }
   };
 
-  // Bắt sự kiện thay đổi input
   useEffect(() => {
     if (query.trim()) {
       const timeoutId = setTimeout(async () => {
         try {
           setIsFetchingSuggestions(true);
-          const res = await axios.get(
-            `${API}/job/suggestions?keyword=${query}`
-          );
+          const res = await axios.get(`${API}/job/suggestions?keyword=${query}`);
           setSuggestions(res.data.suggestions || []);
         } catch (err) {
           console.error("Failed to fetch suggestions", err);
@@ -97,16 +203,12 @@ const HeroSection = () => {
       }, 300);
 
       setShowSuggestions(true);
-
       return () => clearTimeout(timeoutId);
     } else {
       setSuggestions([]);
-      // Nếu input trống và đang focus, hiển thị lịch sử
       if (isInputFocused && user) {
         setShowSuggestions(true);
-        if (searchHistory.length === 0) {
-          fetchSearchHistory();
-        }
+        if (searchHistory.length === 0) fetchSearchHistory();
       } else {
         setShowSuggestions(false);
       }
@@ -114,36 +216,35 @@ const HeroSection = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query, isInputFocused, user]);
 
-  // Bắt sự kiện click với suggestion
   const handleSelectSuggestion = (item: { title: string }) => {
     setQuery(item.title);
-    searchJobHandler(item.title);
+    // suggestion click should trigger filters but not show keyword tag
+    searchJobHandler(item.title, false);
   };
 
-  // Xử lý khi click vào lịch sử tìm kiếm
   const handleSelectHistory = (historyQuery: string) => {
     setQuery(historyQuery);
     searchJobHandler(historyQuery);
   };
 
-  // Xóa lịch sử tìm kiếm
-  const handleDeleteHistory = async (
-    e: React.MouseEvent,
-    historyId: string
-  ) => {
-    e.stopPropagation(); // Ngăn chặn sự kiện click vào item
+  const handleKeywordClick = (keyword: string) => {
+    setQuery(keyword);
+    // popular keyword buttons should infer filters but not persist as query tag
+    searchJobHandler(keyword, false);
+  };
+
+  const handleDeleteHistory = async (e: React.MouseEvent, historyId: string) => {
+    e.stopPropagation();
     try {
       await axios.delete(`${API}/search-history/${historyId}`, {
         withCredentials: true,
       });
-      // Cập nhật state sau khi xóa
       setSearchHistory((prev) => prev.filter((item) => item._id !== historyId));
     } catch (error) {
       console.error("Failed to delete search history:", error);
     }
   };
 
-  // Xử lý khi input được focus
   const handleInputFocus = () => {
     setIsInputFocused(true);
     if (!query.trim() && user && searchHistory.length === 0) {
@@ -154,18 +255,13 @@ const HeroSection = () => {
     }
   };
 
-  // Xử lý khi input mất focus
   const handleInputBlur = () => {
-    // Delay để cho phép click vào suggestion
     setTimeout(() => {
       setIsInputFocused(false);
-      if (!query.trim()) {
-        setShowSuggestions(false);
-      }
+      if (!query.trim()) setShowSuggestions(false);
     }, 200);
   };
 
-  // Bắt sự kiện click ra ngoài input để ẩn gợi ý
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -177,88 +273,43 @@ const HeroSection = () => {
         setShowSuggestions(false);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   return (
-    <section className="relative min-h-[95vh] flex items-center justify-center">
+    <section className="relative bg-gradient-to-b from-blue-50/50 to-white py-10 lg:py-16">
       {isSearching && <FullScreenLoader />}
 
-      {/* Background Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-gradient-to-br from-blue-400/20 to-cyan-400/20 rounded-full blur-3xl animate-pulse delay-1000" />
-
-        {/* Floating Elements */}
-        <div className="absolute top-20 left-10 w-2 h-2 bg-purple-400 rounded-full animate-bounce delay-300" />
-        <div className="absolute top-32 right-20 w-1 h-1 bg-blue-400 rounded-full animate-bounce delay-700" />
-        <div className="absolute bottom-40 left-20 w-1.5 h-1.5 bg-pink-400 rounded-full animate-bounce delay-1000" />
-      </div>
-
-      <div className="relative z-10 text-center max-w-5xl mx-auto px-6">
-        <div className="flex flex-col gap-8">
-          {/* Badge */}
-          <div className="flex justify-center">
-            <div className="group relative">
-              <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 rounded-full blur opacity-30 group-hover:opacity-50 transition duration-300" />
-              <div className="relative flex items-center gap-3 px-6 py-3 bg-white rounded-full border border-gray-200/50 backdrop-blur-sm shadow-lg">
-                <div className="flex items-center">
-                  <Sparkles className="w-4 h-4 text-purple-600 animate-pulse" />
-                </div>
-                <span className="text-sm font-semibold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                  Trang web tìm kiếm việc làm số 1
-                </span>
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-              </div>
+      <div className="container mx-auto max-w-7xl px-4 sm:px-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+          
+          {/* CỘT TRÁI: Nội dung SEO & Tìm kiếm */}
+          <div className="lg:col-span-6 xl:col-span-5 flex flex-col gap-6 order-2 lg:order-1">
+            
+            {/* Badge */}
+            <div className="inline-flex w-fit items-center gap-2 px-4 py-2 bg-blue-100/50 text-blue-700 rounded-full border border-blue-200 shadow-sm">
+              <Sparkles className="w-4 h-4 animate-pulse" />
+              <span className="text-xs sm:text-sm font-semibold">Cập nhật 1,000+ việc làm hôm nay</span>
             </div>
-          </div>
 
-          {/* Main Heading */}
-          <div className="space-y-4">
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-black leading-[1.1] tracking-tight">
-              <span className="block text-gray-900">Tìm kiếm, Nộp đơn &</span>
-              <span className="block mt-2">
-                <span className="text-gray-900">Nhận công việc </span>
-                <span className="relative inline-block">
-                  <span className="absolute inset-0 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent animate-gradient-x">
-                    mơ ước của bạn
-                  </span>
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600">
-                    mơ ước của bạn
-                  </span>
+            {/* Chuẩn SEO H1 & H2 */}
+            <div className="space-y-4">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black leading-tight text-gray-900 tracking-tight">
+                Tìm Việc Làm Tại <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
+                  Tuyển Dụng Đồng Nai
                 </span>
-              </span>
-            </h1>
-          </div>
+              </h1>
+              <h2 className="text-sm sm:text-base text-gray-600 leading-relaxed font-medium">
+                Kênh thông tin tuyển dụng uy tín . Cập nhật liên tục việc làm hành chính, kế toán, việc làm tại Đồng Xoài, Bình Phước, KCN và đa dạng ngành nghề khác.
+              </h2>
+            </div>
 
-          {/* Subtitle */}
-          <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            Khám phá hơn{" "}
-            <span className="relative inline-block">
-              <span className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-lg blur opacity-30" />
-              <span className="relative font-bold text-gray-900 bg-gradient-to-r from-yellow-100 to-orange-100 px-3 py-1 rounded-lg border border-yellow-200">
-                10,000+
-              </span>
-            </span>{" "}
-            cơ hội từ các công ty hàng đầu trong và ngoài nước.
-          </p>
-
-          {/* Search Section */}
-          <div className="relative max-w-2xl mx-auto mt-8">
-            {/* Search Container */}
-            <div className="group relative">
-              {/* Glow Effect */}
-              <div className="absolute -inset-2 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 rounded-2xl blur-xl opacity-20 group-hover:opacity-30 transition duration-500" />
-
-              {/* Main Search Box */}
-              <div className="relative bg-white rounded-2xl w-[480px] shadow-2xl border border-gray-200/50 backdrop-blur-sm overflow-hidden ">
-                <div className="flex items-center">
-                  {/* Search Input */}
+            {/* Search Box Gọn Gàng */}
+            <div className="relative w-full mt-2">
+              <div className="relative bg-white rounded-2xl w-full shadow-lg border border-gray-200/80 focus-within:border-blue-500 transition-colors duration-300">
+                <div className="flex items-center p-1.5">
                   <div className="flex-1 relative">
                     <input
                       ref={inputRef}
@@ -266,200 +317,158 @@ const HeroSection = () => {
                       onFocus={handleInputFocus}
                       onBlur={handleInputBlur}
                       onKeyDown={(e) => {
-                        const totalItems = query.trim()
-                          ? suggestions.length
-                          : searchHistory.length;
-
+                        const totalItems = query.trim() ? suggestions.length : searchHistory.length;
                         if (e.key === "Enter") {
                           e.preventDefault();
                           if (query.trim()) {
-                            if (
-                              activeSuggestionIndex >= 0 &&
-                              suggestions[activeSuggestionIndex]
-                            ) {
-                              handleSelectSuggestion(
-                                suggestions[activeSuggestionIndex]
-                              );
+                            if (activeSuggestionIndex >= 0 && suggestions[activeSuggestionIndex]) {
+                              handleSelectSuggestion(suggestions[activeSuggestionIndex]);
                             } else {
                               searchJobHandler();
                             }
-                          } else if (
-                            activeSuggestionIndex >= 0 &&
-                            searchHistory[activeSuggestionIndex]
-                          ) {
-                            handleSelectHistory(
-                              searchHistory[activeSuggestionIndex].query
-                            );
+                          } else if (activeSuggestionIndex >= 0 && searchHistory[activeSuggestionIndex]) {
+                            handleSelectHistory(searchHistory[activeSuggestionIndex].query);
                           }
                         } else if (e.key === "ArrowDown") {
                           e.preventDefault();
-                          setActiveSuggestionIndex((prev) =>
-                            Math.min(prev + 1, totalItems - 1)
-                          );
+                          setActiveSuggestionIndex((prev) => Math.min(prev + 1, totalItems - 1));
                         } else if (e.key === "ArrowUp") {
                           e.preventDefault();
-                          setActiveSuggestionIndex((prev) =>
-                            Math.max(prev - 1, -1)
-                          );
+                          setActiveSuggestionIndex((prev) => Math.max(prev - 1, -1));
                         }
                       }}
                       value={query}
                       type="text"
-                      placeholder="Vị trí tuyển dụng, tên công ty, địa điểm,..."
-                      className="w-full h-16 px-8 text-lg text-gray-900 placeholder:text-gray-400 border-none outline-none bg-transparent font-medium"
+                      placeholder="Tìm theo chức danh, kỹ năng, địa điểm..."
+                      className="w-full h-12 sm:h-14 px-4 text-sm sm:text-base text-gray-900 placeholder:text-gray-400 border-none outline-none bg-transparent"
                     />
-
-                    {/* Input Border Animation */}
-                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-600 to-blue-600 scale-x-0 group-focus-within:scale-x-100 transition-transform duration-300 origin-left" />
                   </div>
 
-                  {/* Search Button */}
-                  <div className="p-2">
-                    <Button
-                      onClick={() => searchJobHandler()}
-                      className="h-12 w-12 cursor-pointer rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-300 border-0 group/btn disabled:opacity-50"
-                      disabled={isSearching || !query.trim()}
-                    >
-                      {isSearching ? (
-                        <Loader2 className="w-5 h-5 text-white animate-spin" />
-                      ) : (
-                        <Search className="w-5 h-5 text-white group-hover/btn:scale-110 transition-transform duration-200" />
-                      )}
-                    </Button>
-                  </div>
+                  <Button
+                    onClick={() => searchJobHandler()}
+                    className="h-10 w-10 sm:h-12 sm:w-12 ml-1 rounded-xl bg-blue-600 hover:bg-blue-700 shadow-md transition-all duration-300 border-0 flex-shrink-0"
+                    disabled={isSearching || !query.trim()}
+                  >
+                    {isSearching ? <Loader2 className="w-5 h-5 text-white animate-spin" /> : <Search className="w-5 h-5 text-white" />}
+                  </Button>
                 </div>
               </div>
-            </div>
 
-            {/* Loading Indicator */}
-            {isFetchingSuggestions && (
-              <div className="absolute left-6 -bottom-8 flex items-center gap-2 text-sm text-gray-500">
-                <div className="flex space-x-1">
-                  <div className="w-1 h-1 bg-purple-400 rounded-full animate-bounce" />
-                  <div className="w-1 h-1 bg-blue-400 rounded-full animate-bounce delay-100" />
-                  <div className="w-1 h-1 bg-pink-400 rounded-full animate-bounce delay-200" />
+              {/* Loading Indicator */}
+              {isFetchingSuggestions && (
+                <div className="absolute left-4 -bottom-6 flex items-center gap-1.5 text-[10px] sm:text-xs text-blue-600 font-medium z-10">
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  <span>Đang tìm gợi ý...</span>
                 </div>
-                <span>Đang tìm gợi ý...</span>
-              </div>
-            )}
+              )}
 
-            {/* Suggestions or Search History */}
-            {showSuggestions && (
-              <div
-                ref={suggestionsRef}
-                className="absolute top-full left-0 right-0 z-50 mt-2"
-              >
-                {query.trim() ? (
-                  // Hiển thị suggestions khi có query
-                  <SuggestionList
-                    suggestions={suggestions}
-                    onSelect={handleSelectSuggestion}
-                    keyword={query}
-                    activeIndex={activeSuggestionIndex}
-                  />
-                ) : (
-                  // Hiển thị lịch sử tìm kiếm khi query trống
-                  user && (
-                    <div className="bg-white rounded-2xl shadow-2xl border border-gray-200/50 backdrop-blur-sm overflow-hidden">
-                      <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4 text-gray-500" />
-                          <h3 className="font-semibold text-sm text-gray-700">
-                            Lịch sử tìm kiếm
-                          </h3>
+              {/* Suggestions / History Dropdown */}
+              {showSuggestions && (
+                <div ref={suggestionsRef} className="absolute top-full left-0 right-0 z-50 mt-2">
+                  {query.trim() ? (
+                    <SuggestionList
+                      suggestions={suggestions}
+                      onSelect={handleSelectSuggestion}
+                      keyword={query}
+                      activeIndex={activeSuggestionIndex}
+                    />
+                  ) : (
+                    user && (
+                      <div className="bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden text-sm">
+                        <div className="px-4 py-2 border-b border-gray-50 flex items-center gap-2 bg-gray-50">
+                          <Clock className="h-3.5 w-3.5 text-gray-500" />
+                          <h3 className="font-medium text-xs text-gray-500 uppercase">Lịch sử tìm kiếm</h3>
                         </div>
-                      </div>
-                      {isFetchingHistory ? (
-                        <div className="flex items-center justify-center py-8">
-                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
-                        </div>
-                      ) : searchHistory.length === 0 ? (
-                        <div className="px-4 py-8 text-center text-gray-500 text-sm">
-                          Chưa có lịch sử tìm kiếm
-                        </div>
-                      ) : (
-                        <ul className="max-h-64 overflow-y-auto">
-                          {searchHistory.map((item, index) => (
-                            <li
-                              key={item._id}
-                              onClick={() => handleSelectHistory(item.query)}
-                              className={`px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-b-0 ${
-                                index === activeSuggestionIndex
-                                  ? "bg-indigo-50"
-                                  : ""
-                              }`}
-                            >
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3 flex-1 min-w-0">
-                                  <Clock className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                                  <span className="font-medium text-gray-900 truncate">
-                                    {item.query}
-                                  </span>
+                        {isFetchingHistory ? (
+                          <div className="flex justify-center py-4"><Loader2 className="h-4 w-4 animate-spin text-blue-500" /></div>
+                        ) : searchHistory.length === 0 ? (
+                          <div className="px-4 py-4 text-center text-gray-400 text-xs">Chưa có lịch sử</div>
+                        ) : (
+                          <ul className="max-h-56 overflow-y-auto">
+                            {searchHistory.map((item, index) => (
+                              <li
+                                key={item._id}
+                                onClick={() => handleSelectHistory(item.query)}
+                                className={`px-4 py-2.5 cursor-pointer hover:bg-gray-50 ${index === activeSuggestionIndex ? "bg-blue-50" : ""}`}
+                              >
+                                <div className="flex items-center justify-between">
+                                  <span className="font-medium text-gray-700 truncate">{item.query}</span>
+                                  <button onClick={(e) => handleDeleteHistory(e, item._id)} className="p-1 hover:bg-gray-200 rounded-full">
+                                    <X className="h-3.5 w-3.5 text-gray-400 hover:text-red-500" />
+                                  </button>
                                 </div>
-                                <button
-                                  onClick={(e) =>
-                                    handleDeleteHistory(e, item._id)
-                                  }
-                                  className="p-1.5 cursor-pointer hover:bg-gray-200 rounded-full transition-colors flex-shrink-0"
-                                >
-                                  <X className="h-4 w-4 text-gray-500 hover:text-red-500" />
-                                </button>
-                              </div>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  )
-                )}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    )
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Từ khóa SEO / Gợi ý tìm kiếm nhanh */}
+            <div className="flex flex-col gap-2 mt-2">
+              <div className="flex items-center gap-1.5 text-sm text-gray-500 font-medium">
+                <TrendingUp className="w-4 h-4 text-orange-500" />
+                Gợi ý tìm kiếm:
               </div>
-            )}
+              <div className="flex flex-wrap gap-2">
+                {popularKeywords.map((kw, i) => (
+                  <button
+                    key={i}
+                    onClick={() => handleKeywordClick(kw)}
+                    className="text-xs px-3 py-1.5 bg-white border border-gray-200 rounded-full text-gray-600 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50 transition-colors shadow-sm"
+                  >
+                    {kw}
+                  </button>
+                ))}
+              </div>
+            </div>
+
           </div>
 
-          {/* Quick Stats */}
-          <div className="flex flex-wrap items-center justify-center gap-8 mt-12 text-sm text-gray-600">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-              <span>
-                <span className="font-semibold text-gray-900">2.5M+</span> ứng
-                viên đã tìm việc
-              </span>
-            </div>
-            <div className="hidden md:block w-px h-4 bg-gray-300" />
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse delay-300" />
-              <span>
-                <span className="font-semibold text-gray-900">50K+</span> công
-                ty đối tác
-              </span>
-            </div>
-            <div className="hidden md:block w-px h-4 bg-gray-300" />
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse delay-500" />
-              <span>
-                <span className="font-semibold text-gray-900">98%</span> tỷ lệ
-                hài lòng
-              </span>
+          {/* CỘT PHẢI: Banner Slider */}
+          <div className="lg:col-span-6 xl:col-span-7 relative order-1 lg:order-2 w-full h-[250px] sm:h-[350px] lg:h-[420px] rounded-3xl overflow-hidden shadow-2xl group">
+            {banners.map((banner, index) => (
+              <div
+                key={banner.id}
+                className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+                  currentSlide === index ? "opacity-100 z-10" : "opacity-0 z-0"
+                }`}
+              >
+                <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-gray-900/20 to-transparent z-10" />
+                <img
+                  src={banner.image}
+                  alt={banner.title}
+                  className="w-full h-full object-cover scale-105 group-hover:scale-100 transition-transform duration-700"
+                />
+                <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8 z-20">
+                  <h3 className="text-xl sm:text-3xl font-bold text-white mb-2 translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                    {banner.title}
+                  </h3>
+                </div>
+              </div>
+            ))}
+
+            {/* Nút điều hướng Slide (Dots) */}
+            <div className="absolute bottom-4 left-0 right-0 z-30 flex justify-center gap-2">
+              {banners.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentSlide(index)}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                    currentSlide === index ? "w-6 bg-blue-500" : "w-1.5 bg-white/50 hover:bg-white"
+                  }`}
+                  aria-label={`Chuyển slide ${index + 1}`}
+                />
+              ))}
             </div>
           </div>
+
         </div>
       </div>
-
-      {/* Custom CSS for gradient animation */}
-      <style>{`
-        @keyframes gradient-x {
-          0%, 100% {
-            background-position: 0% 50%;
-          }
-          50% {
-            background-position: 100% 50%;
-          }
-        }
-        .animate-gradient-x {
-          background-size: 200% 200%;
-          animation: gradient-x 3s ease infinite;
-        }
-      `}</style>
     </section>
   );
 };

@@ -61,7 +61,7 @@ const ForgotPassword = () => {
           <div className="mb-3">
             <img
               src="vj1.png"
-              alt="VieJobs Logo"
+              alt="Tuyển dụng Đồng Nai Logo"
               className="h-12 w-auto mx-auto max-w-[160px] object-contain"
             />
           </div>
@@ -161,12 +161,12 @@ const ForgotPassword = () => {
               href="tel:0988514528"
               className="text-green-600 font-medium hover:underline"
             >
-              (+84) 8851 4528
+              (+84) 869122385
             </a>{" "}
             (giờ hành chính)
           </p>
           <p className="mt-1">
-            © {new Date().getFullYear()} VieJobs Vietnam JSC.
+            © {new Date().getFullYear()} Tuyển dụng Đồng Nai Vietnam JSC.
           </p>
         </div>
       </div>
@@ -181,7 +181,7 @@ const ForgotPassword = () => {
           <div className="flex justify-center mb-4">
             <img
               src="vj1.png"
-              alt="VieJobs Logo"
+              alt="Tuyển dụng Đồng Nai Logo"
               className="h-full w-auto max-w-[240px] object-contain drop-shadow-[2px_2px_1px_rgba(0,0,0,0.25)]"
             />
           </div>
@@ -214,7 +214,7 @@ const ForgotPassword = () => {
                 </p>
               </div>
               <p className="text-white/90 italic">
-                "VieJobs đã giúp hơn 10,000 ứng viên tìm được công việc mơ ước
+                "Tuyển dụng Đồng Nai đã giúp hơn 10,000 ứng viên tìm được công việc mơ ước
                 chỉ sau 2 tuần!"
               </p>
             </div>

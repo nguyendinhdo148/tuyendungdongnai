@@ -119,7 +119,7 @@ export const buildJobSuggestionsEmail = (user, suggestedJobs) => {
         <div style="background-color: #1d4ed8; padding: 30px 20px; border-radius: 0 0 8px 8px; color: #ffffff; text-align: center;">
           <p style="font-size: 14px; margin: 4px 0; color: #ffffff;">Tòa nhà A, Số 123 Nguyễn Huệ, Q.1, TP.HCM</p>
           <p style="font-size: 12px; margin: 0; color: #ffffff;">
-            ©2014-2025 VieJobs Vietnam. All rights reserved.
+            ©2014-2025 Tuyển dụng Đồng Nai Vietnam. All rights reserved.
           </p>
         </div>
       </div>

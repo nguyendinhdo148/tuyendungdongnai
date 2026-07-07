@@ -5,6 +5,7 @@ import TemplateThree from "./TemplateThree";
 import TemplateFour from "./TemplateFour";
 import TemplateFive from "./TemplateFive";
 import TemplateSix from "./TemplateSix";
+import TemplateSeven from "./TemplateSeven";
 
 interface Props {
   templateId: string;
@@ -64,9 +65,19 @@ const RenderResume = ({
           containerWidth={containerWidth}
         />
       );
+      
     case "06":
       return (
         <TemplateSix
+          resumeData={resumeData}
+          colorPalette={colorPalette}
+          containerWidth={containerWidth}
+        />
+      );
+
+    case "07":
+      return (
+        <TemplateSeven
           resumeData={resumeData}
           colorPalette={colorPalette}
           containerWidth={containerWidth}

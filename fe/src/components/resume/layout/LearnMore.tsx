@@ -51,7 +51,7 @@ const LearnMore = () => {
             variants={fadeIn}
           >
             <Sparkles className="w-5 h-5 mr-2" />
-            Tìm hiểu về VieJobs CV
+            Tìm hiểu về Tuyển dụng Đồng Nai CV
           </motion.div>
 
           <motion.h1
@@ -60,7 +60,7 @@ const LearnMore = () => {
           >
             Tại sao chọn{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-500">
-              VieJobs CV?
+              Tuyển dụng Đồng Nai CV?
             </span>
           </motion.h1>
 
@@ -68,7 +68,7 @@ const LearnMore = () => {
             className="text-xl text-gray-600 max-w-3xl mx-auto mb-8"
             variants={fadeIn}
           >
-            VieJobs CV là nền tảng tạo CV hàng đầu Việt Nam, được tin tưởng bởi
+            Tuyển dụng Đồng Nai CV là nền tảng tạo CV hàng đầu Việt Nam, được tin tưởng bởi
             hơn 50,000+ người dùng. Chúng tôi giúp bạn tạo ra những bản CV
             chuyên nghiệp, nổi bật và tăng 80% cơ hội nhận được phỏng vấn.
           </motion.p>
@@ -77,7 +77,7 @@ const LearnMore = () => {
             <div className="relative">
               <img
                 src="/professional-cv-templates.png"
-                alt="VieJobs CV Templates"
+                alt="Tuyển dụng Đồng Nai CV Templates"
                 className="rounded-2xl shadow-2xl"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-2xl"></div>
@@ -106,7 +106,7 @@ const LearnMore = () => {
               transition={{ duration: 0.5 }}
               viewport={{ once: true }}
             >
-              Lợi ích vượt trội khi sử dụng VieJobs CV
+              Lợi ích vượt trội khi sử dụng Tuyển dụng Đồng Nai CV
             </motion.h2>
             <motion.p
               className="text-gray-600 max-w-2xl mx-auto"
@@ -306,7 +306,7 @@ const LearnMore = () => {
               transition={{ duration: 0.5, delay: 0.1 }}
               viewport={{ once: true }}
             >
-              Hàng ngàn người đã thay đổi sự nghiệp nhờ VieJobs CV
+              Hàng ngàn người đã thay đổi sự nghiệp nhờ Tuyển dụng Đồng Nai CV
             </motion.p>
           </div>
 
@@ -316,7 +316,7 @@ const LearnMore = () => {
                 name: "Nguyễn Minh Tuấn",
                 position: "Software Engineer tại FPT Software",
                 story:
-                  "Sau khi sử dụng VieJobs CV, tôi đã nhận được 5 lời mời phỏng vấn chỉ trong 2 tuần. CV được thiết kế rất chuyên nghiệp và nổi bật so với các ứng viên khác.",
+                  "Sau khi sử dụng Tuyển dụng Đồng Nai CV, tôi đã nhận được 5 lời mời phỏng vấn chỉ trong 2 tuần. CV được thiết kế rất chuyên nghiệp và nổi bật so với các ứng viên khác.",
                 salary: "Tăng lương 150%",
                 avatar: "/user.webp",
               },
@@ -324,7 +324,7 @@ const LearnMore = () => {
                 name: "Trần Thị Hương",
                 position: "Marketing Manager tại Shopee",
                 story:
-                  "VieJobs CV giúp tôi chuyển đổi sự nghiệp từ Sales sang Marketing một cách suôn sẻ. Các gợi ý AI rất hữu ích trong việc highlight những kỹ năng phù hợp.",
+                  "Tuyển dụng Đồng Nai CV giúp tôi chuyển đổi sự nghiệp từ Sales sang Marketing một cách suôn sẻ. Các gợi ý AI rất hữu ích trong việc highlight những kỹ năng phù hợp.",
                 salary: "Thăng tiến vị trí",
                 avatar: "/user.webp",
               },
@@ -332,7 +332,7 @@ const LearnMore = () => {
                 name: "Lê Văn Đức",
                 position: "Data Analyst tại Grab",
                 story:
-                  "Là fresh graduate, tôi lo lắng về việc thiếu kinh nghiệm. Nhưng VieJobs CV đã giúp tôi trình bày các project học tập một cách ấn tượng và nhận được offer đầu tiên.",
+                  "Là fresh graduate, tôi lo lắng về việc thiếu kinh nghiệm. Nhưng Tuyển dụng Đồng Nai CV đã giúp tôi trình bày các project học tập một cách ấn tượng và nhận được offer đầu tiên.",
                 salary: "Offer đầu tiên",
                 avatar: "/user.webp",
               },
@@ -340,7 +340,7 @@ const LearnMore = () => {
                 name: "Phạm Thị Lan",
                 position: "UX Designer tại VNG",
                 story:
-                  "Với background kỹ thuật, tôi gặp khó khăn khi chuyển sang thiết kế. VieJobs CV đã giúp tôi tạo ra một bản CV creative nhưng vẫn professional, thu hút được sự chú ý của recruiter.",
+                  "Với background kỹ thuật, tôi gặp khó khăn khi chuyển sang thiết kế. Tuyển dụng Đồng Nai CV đã giúp tôi tạo ra một bản CV creative nhưng vẫn professional, thu hút được sự chú ý của recruiter.",
                 salary: "Chuyển đổi ngành",
                 avatar: "/user.webp",
               },
@@ -487,7 +487,7 @@ const LearnMore = () => {
             viewport={{ once: true }}
           >
             Tham gia cùng hơn 50,000+ người dùng đã thành công trong việc tìm
-            kiếm công việc mơ ước với VieJobs CV
+            kiếm công việc mơ ước với Tuyển dụng Đồng Nai CV
           </motion.p>
           <motion.div
             className="flex flex-col sm:flex-row justify-center gap-4"

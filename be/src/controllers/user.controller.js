@@ -2,9 +2,9 @@ import { User } from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import nodemailer from "nodemailer";
-import cloudinary from "../utils/cloudinary.js";
+import cloudinary, { uploadToCloudinary } from "../utils/cloudinary.js";
 import getDataUri from "../utils/datauri.js";
+import { sendMail } from "../services/emailService.js";
 
 const generateTokens = (userId) => {
   const accessToken = jwt.sign({ userId }, process.env.SECRET_KEY, {
@@ -212,7 +212,9 @@ export const updateProfile = async (req, res, next) => {
     if (req.file) {
       try {
         const fileUri = getDataUri(req.file);
-        const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
+        const cloudResponse = await uploadToCloudinary(fileUri.content, {
+          folder: "viejobs/resumes",
+        });
         profileResume = {
           url: cloudResponse.secure_url,
           public_id: cloudResponse.public_id,
@@ -300,7 +302,9 @@ export const updateAvatar = async (req, res, next) => {
     if (req.file) {
       try {
         const fileUri = getDataUri(req.file);
-        const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
+        const cloudResponse = await uploadToCloudinary(fileUri.content, {
+          folder: "viejobs/avatars",
+        });
         profilePhotoUrl = {
           url: cloudResponse.secure_url,
           public_id: cloudResponse.public_id,
@@ -380,152 +384,147 @@ export const forgotPassword = async (req, res, next) => {
     // Create reset URL
     const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
 
-    // Send email
-    const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 465,
-      secure: true,
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD,
-      },
-    });
-
-    const mailOptions = {
-      from: `VieJobs Support <${process.env.EMAIL_USER}>`,
-      to: user.email,
-      subject: "🔒 Reset Your Password - VieJobs",
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <style>
-            body {
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-              line-height: 1.6;
-              margin: 0;
-              padding: 0;
-              background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
-              min-height: 100vh;
-            }
-            .container {
-              max-width: 600px;
-              margin: 40px auto;
-              padding: 40px 20px;
-              text-align: center;
-              background-color: rgba(249, 249, 249, 0.95);
-              border-radius: 16px;
-              box-shadow:
-                0 10px 25px -3px rgba(0, 0, 0, 0.1),
-                0 4px 6px -2px rgba(0, 0, 0, 0.05),
-                0 0 0 1px rgba(0, 0, 0, 0.02);
-              backdrop-filter: blur(10px);
-            }
-            .logo {
-              font-size: 32px;
-              font-weight: bold;
-              margin-bottom: 30px;
-              color: #1a1a1a;
-              text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-            }
-            .logo span {
-              background: linear-gradient(45deg, #ff3366, #ff0000);
-              -webkit-background-clip: text;
-              background-clip: text;
-              color: transparent;
-            }
-            .title {
-              font-size: 24px;
-              font-weight: 600;
-              color: #1a1a1a;
-              margin: 20px 0;
-            }
-            .description {
-              color: #4a5568;
-              font-size: 16px;
-              margin: 15px 0;
-              line-height: 1.5;
-            }
-            .minutes {
-              font-weight: 600;
-              color: #2d3748;
-            }
-            .reset-button {
-              background: linear-gradient(135deg, #0066ff 0%, #0052cc 100%);
-              color: #000000;
-              padding: 12px 28px;
-              text-decoration: none;
-              border-radius: 8px;
-              display: inline-block;
-              font-size: 16px;
-              font-weight: 600;
-              margin: 25px 0;
-              transition: all 0.2s ease;
-              box-shadow:
-                0 4px 6px -1px rgba(0, 102, 255, 0.2),
-                0 2px 4px -1px rgba(0, 102, 255, 0.1);
-            }
-            .reset-button:hover {
-              opacity: 0.95;
-              transform: translateY(-1px);
-              box-shadow:
-                0 6px 8px -1px rgba(0, 102, 255, 0.25),
-                0 3px 6px -1px rgba(0, 102, 255, 0.15);
-              color: #000000;
-            }
-            .footer {
-              color: #4a5568;
-              font-size: 14px;
-              margin-top: 30px;
-            }
-            .copyright {
-              color: #718096;
-              font-size: 14px;
-              margin-top: 40px;
-            }
-            .links {
-              margin-top: 10px;
-            }
-            .links a {
-              color: #0066ff;
-              text-decoration: none;
-              transition: color 0.2s ease;
-            }
-            .links a:hover {
-              color: #0052cc;
-              text-decoration: underline;
-            }
-            .separator {
-              color: #cbd5e0;
-              margin: 0 8px;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="logo">Vie<span>Jobs</span></div>
-            <h1 class="title">🔑 Reset Your Password</h1>
-            <p class="description">We received a request to reset your password. Click the button below to continue.</p>
-            <p class="description">This link will expire in <span class="minutes">10 minutes</span>.</p>
-            <a href="${resetUrl}" class="reset-button">🔗 Reset Password</a>
-            <p class="footer">If you didn't request a password reset, please ignore this email or contact our support team.</p>
-            <div class="copyright">
-              © 2025 VieJobs. All rights reserved.<br>
-              <div class="links">
-                <a href="${process.env.FRONTEND_URL}">Visit our website</a>
-                <span class="separator">|</span>
-                <a href="${process.env.FRONTEND_URL}/contact">Contact Support</a>
+    try {
+      await sendMail({
+        to: user.email,
+        subject: "🔒 Reset Your Password - Tuyển dụng Đồng Nai",
+        html: `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <style>
+              body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+                line-height: 1.6;
+                margin: 0;
+                padding: 0;
+                background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+                min-height: 100vh;
+              }
+              .container {
+                max-width: 600px;
+                margin: 40px auto;
+                padding: 40px 20px;
+                text-align: center;
+                background-color: rgba(249, 249, 249, 0.95);
+                border-radius: 16px;
+                box-shadow:
+                  0 10px 25px -3px rgba(0, 0, 0, 0.1),
+                  0 4px 6px -2px rgba(0, 0, 0, 0.05),
+                  0 0 0 1px rgba(0, 0, 0, 0.02);
+                backdrop-filter: blur(10px);
+              }
+              .logo {
+                font-size: 32px;
+                font-weight: bold;
+                margin-bottom: 30px;
+                color: #1a1a1a;
+                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+              }
+              .logo span {
+                background: linear-gradient(45deg, #ff3366, #ff0000);
+                -webkit-background-clip: text;
+                background-clip: text;
+                color: transparent;
+              }
+              .title {
+                font-size: 24px;
+                font-weight: 600;
+                color: #1a1a1a;
+                margin: 20px 0;
+              }
+              .description {
+                color: #4a5568;
+                font-size: 16px;
+                margin: 15px 0;
+                line-height: 1.5;
+              }
+              .minutes {
+                font-weight: 600;
+                color: #2d3748;
+              }
+              .reset-button {
+                background: linear-gradient(135deg, #0066ff 0%, #0052cc 100%);
+                color: #000000;
+                padding: 12px 28px;
+                text-decoration: none;
+                border-radius: 8px;
+                display: inline-block;
+                font-size: 16px;
+                font-weight: 600;
+                margin: 25px 0;
+                transition: all 0.2s ease;
+                box-shadow:
+                  0 4px 6px -1px rgba(0, 102, 255, 0.2),
+                  0 2px 4px -1px rgba(0, 102, 255, 0.1);
+              }
+              .reset-button:hover {
+                opacity: 0.95;
+                transform: translateY(-1px);
+                box-shadow:
+                  0 6px 8px -1px rgba(0, 102, 255, 0.25),
+                  0 3px 6px -1px rgba(0, 102, 255, 0.15);
+                color: #000000;
+              }
+              .footer {
+                color: #4a5568;
+                font-size: 14px;
+                margin-top: 30px;
+              }
+              .copyright {
+                color: #718096;
+                font-size: 14px;
+                margin-top: 40px;
+              }
+              .links {
+                margin-top: 10px;
+              }
+              .links a {
+                color: #0066ff;
+                text-decoration: none;
+                transition: color 0.2s ease;
+              }
+              .links a:hover {
+                color: #0052cc;
+                text-decoration: underline;
+              }
+              .separator {
+                color: #cbd5e0;
+                margin: 0 8px;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="logo">Tuyển dụng <span>Đồng Nai</span></div>
+              <h1 class="title">🔑 Reset Your Password</h1>
+              <p class="description">We received a request to reset your password. Click the button below to continue.</p>
+              <p class="description">This link will expire in <span class="minutes">10 minutes</span>.</p>
+              <a href="${resetUrl}" class="reset-button">🔗 Reset Password</a>
+              <p class="footer">If you didn't request a password reset, please ignore this email or contact our support team.</p>
+              <div class="copyright">
+                © 2025 Tuyển dụng Đồng Nai. All rights reserved.<br>
+                <div class="links">
+                  <a href="${process.env.FRONTEND_URL}">Visit our website</a>
+                  <span class="separator">|</span>
+                  <a href="${process.env.FRONTEND_URL}/contact">Contact Support</a>
+                </div>
               </div>
             </div>
-          </div>
-        </body>
-        </html>
-      `,
-    };
-
-    await transporter.sendMail(mailOptions);
+          </body>
+          </html>
+        `,
+        replyTo: process.env.BREVO_USER || process.env.EMAIL_USER,
+      });
+    } catch (error) {
+      console.error("Failed to send password reset email:", error);
+      return res.status(500).json({
+        message: "Unable to send password reset email right now. Please try again later.",
+        success: false,
+      });
+    }
 
     return res.status(200).json({
       message: "Password reset link sent to your email",

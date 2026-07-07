@@ -18,6 +18,17 @@ interface BlogFormData {
   category: string;
 }
 
+// Khai báo danh sách danh mục cố định
+const CATEGORIES = [
+  "Công nghệ",
+  "Lối sống",
+  "Kinh doanh",
+  "Giáo dục",
+  "Sức khỏe",
+  "Du lịch",
+  "Ẩm thực",
+];
+
 const CreateBlog = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
@@ -28,7 +39,7 @@ const CreateBlog = () => {
       url: "",
     },
     tags: [],
-    category: "",
+    category: "", // Trống ban đầu để bắt người dùng chọn
   });
 
   const { user } = useSelector((store: RootState) => store.auth);
@@ -94,7 +105,11 @@ const CreateBlog = () => {
       return false;
     }
     if (!formData.category.trim()) {
-      toast.error("Vui lòng nhập danh mục");
+      toast.error("Vui lòng chọn danh mục");
+      return false;
+    }
+    if (formData.tags.length === 0) {
+      toast.error("Vui lòng nhập ít nhất 1 tag");
       return false;
     }
     return true;
@@ -109,9 +124,13 @@ const CreateBlog = () => {
       blogFormData.append("title", formData.title);
       blogFormData.append("content", formData.content);
       blogFormData.append("category", formData.category);
-      blogFormData.append("tags", JSON.stringify(formData.tags));
 
-      if (formData.image) {
+      // CẬP NHẬT CHUẨN BACKEND: Ghép tags thành chuỗi cách nhau bằng ", "
+      if (formData.tags.length > 0) {
+        blogFormData.append("tags", formData.tags.join(", "));
+      }
+
+      if (formData.image && formData.image.url) {
         blogFormData.append("file", formData.image.url);
       }
 
@@ -150,7 +169,7 @@ const CreateBlog = () => {
   };
 
   return (
-    <div className="bg-gray-100">
+    <div className="bg-gray-100 min-h-screen">
       <Navbar />
 
       <div className="max-w-4xl my-6 mx-auto p-6 bg-white rounded-lg shadow-lg">
@@ -170,30 +189,27 @@ const CreateBlog = () => {
           />
         </div>
 
-        {/* Category Input */}
+        {/* Category Select - Giao diện chỉ cho chọn */}
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Danh mục *
           </label>
-          <input
-            type="text"
+          <select
             value={formData.category}
             onChange={(e) =>
               setFormData((prev) => ({ ...prev, category: e.target.value }))
             }
-            placeholder="Nhập danh mục (ví dụ: Công nghệ, Lối sống, Kinh doanh...)"
-            list="categories"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <datalist id="categories">
-            <option value="Công nghệ" />
-            <option value="Lối sống" />
-            <option value="Kinh doanh" />
-            <option value="Giáo dục" />
-            <option value="Sức khỏe" />
-            <option value="Du lịch" />
-            <option value="Ẩm thực" />
-          </datalist>
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white cursor-pointer"
+          >
+            <option value="" disabled>
+              -- Chọn danh mục --
+            </option>
+            {CATEGORIES.map((cat) => (
+              <option key={cat} value={cat}>
+                {cat}
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* Image Upload */}
@@ -218,7 +234,7 @@ const CreateBlog = () => {
           )}
         </div>
 
-        {/* Tags Input */}
+        {/* Tags Input - Giao diện hiển thị tách rời từng tag */}
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Tags
@@ -240,22 +256,22 @@ const CreateBlog = () => {
             <button
               type="button"
               onClick={handleAddTag}
-              className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+              className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
             >
               Thêm
             </button>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 mt-3">
             {formData.tags.map((tag, index) => (
               <span
                 key={index}
-                className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800"
+                className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700 border border-blue-200"
               >
-                {tag}
+                #{tag}
                 <button
                   type="button"
                   onClick={() => handleRemoveTag(tag)}
-                  className="ml-2 text-blue-600 hover:text-blue-800"
+                  className="ml-2 text-blue-400 hover:text-blue-800 focus:outline-none"
                 >
                   ×
                 </button>
@@ -264,40 +280,32 @@ const CreateBlog = () => {
           </div>
         </div>
 
-        {/* Content Editor & preview */}
-        <BlogEditor
-          content={formData.content}
-          onContentChange={handleContentChange}
-        />
+        {/* Content Editor */}
+        <div className="mb-4">
+          <BlogEditor
+            content={formData.content}
+            onContentChange={handleContentChange}
+          />
+        </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-4 justify-between">
+        <div className="flex gap-4 justify-between mt-8">
           <button
             type="button"
             onClick={handleCancel}
-            className="px-6 py-2 cursor-pointer border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+            className="px-6 py-2 cursor-pointer border border-gray-300 text-gray-700 font-medium rounded-md hover:bg-gray-50 transition-colors"
           >
             Hủy
           </button>
 
-          <div className="flex gap-4">
-            {/* <button
+          <button
             type="button"
-            onClick={handleSaveDraft}
+            onClick={handleCreateBlog}
             disabled={isLoading}
-            className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 disabled:opacity-50"
+            className="px-8 py-2 cursor-pointer bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
           >
-            {isLoading ? "Đang lưu..." : "Lưu bản nháp"}
-          </button> */}
-            <button
-              type="button"
-              onClick={handleCreateBlog}
-              disabled={isLoading}
-              className="px-6 py-2 cursor-pointer bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50"
-            >
-              {isLoading ? "Đang xuất bản..." : "Xuất bản"}
-            </button>
-          </div>
+            {isLoading ? "Đang xuất bản..." : "Xuất bản bài viết"}
+          </button>
         </div>
       </div>
     </div>

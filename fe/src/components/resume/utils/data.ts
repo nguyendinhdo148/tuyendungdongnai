@@ -4,6 +4,7 @@ import TEMPLATE_THREE from "/TemplateThree.jpg";
 import TEMPLATE_FOUR from "/TemplateFour.jpg";
 import TEMPLATE_FIVE from "/TemplateFive.jpg";
 import TEMPLATE_SIX from "/TemplateSix.jpg";
+import TEMPLATE_SEVEN from "/TemplateSeven.jpg";
 
 interface Resume {
   // userId: string;
@@ -94,6 +95,11 @@ export const resumeTemplates = [
     id: "06",
     thumbnailImg: TEMPLATE_SIX,
     colorPaletteCode: "themeSix",
+  },
+  {
+    id: "07",
+    thumbnailImg: TEMPLATE_SEVEN,
+    colorPaletteCode: "themeSeven",
   },
 ];
 

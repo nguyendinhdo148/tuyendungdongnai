@@ -168,18 +168,12 @@ export const getAllBlog = async (req, res, next) => {
     const blogs = await Blog.find()
       .sort({ createdAt: -1 })
       .populate("created_by", "_id fullname email profile.profilePhoto");
-
-    if (!blogs || blogs.length === 0) {
-      return res.status(404).json({
-        message: "No blogs found.",
-        success: false,
-      });
-    }
-
+    // If no blogs found, return empty array with 200 to allow frontend to handle gracefully
+    const blogsCount = blogs?.length || 0;
     return res.status(200).json({
       message: "Blogs retrieved successfully.",
-      blogsCount: blogs.length,
-      blogs,
+      blogsCount,
+      blogs: blogs || [],
       success: true,
     });
   } catch (error) {
