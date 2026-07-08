@@ -158,123 +158,140 @@ const Company = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl shadow-lg">
-            <Building className="size-8 text-white" />
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-3 md:gap-4">
+          <div className="flex items-center justify-center w-12 h-12 md:w-16 md:h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl md:rounded-2xl shadow-lg shrink-0">
+            <Building className="w-6 h-6 md:w-8 md:h-8 text-white" />
           </div>
           <div>
-            <h1 className="text-3xl font-semibold text-gray-800">
+            <h1 className="text-xl md:text-3xl font-semibold text-gray-800">
               Quản lý công ty
             </h1>
-            <p className="mt-1 text-gray-500">
-              Quản lý thông tin, giấy tờ và trạng thái hoạt động của công ty
+            <p className="mt-1 text-xs md:text-sm text-gray-500 line-clamp-1">
+              Quản lý thông tin và trạng thái công ty
             </p>
           </div>
         </div>
         <Button
-          size="lg"
-          className="cursor-pointer bg-gradient-to-r from-blue-500 to-blue-700 text-white shadow-md hover:shadow-lg transition"
+          size="sm"
+          className="md:h-11 cursor-pointer bg-gradient-to-r from-blue-500 to-blue-700 text-white shadow-md hover:shadow-lg transition whitespace-nowrap self-start md:self-auto"
           onClick={() => {
             setSelectedCompany(null);
             setIsDialogOpen(true);
           }}
         >
           <div className="flex items-center gap-2">
-            <Plus className="mr-2 size-4" />
+            <Plus className="size-4" />
             <span>Thêm công ty mới</span>
           </div>
         </Button>
       </div>
 
       {/* Company List */}
-      <Card className="shadow-sm border border-gray-200 rounded-xl">
-        <div className="p-6">
+      <Card className="shadow-sm border border-gray-200 rounded-xl overflow-hidden">
+        <div className="p-0 md:p-6 overflow-x-auto [&::-webkit-scrollbar]:hidden">
           {companies.length > 0 ? (
-            <Table>
+            <Table className="min-w-full">
               <TableHeader>
-                <TableRow className="hover:bg-gray-50 transition">
-                  <TableHead className="w-[200px]">Công ty</TableHead>
-                  <TableHead className="text-center">Trụ sở</TableHead>
-                  <TableHead className="text-center w-[200px]">
+                <TableRow className="bg-gray-50/50">
+                  <TableHead className="w-[250px] text-gray-700 font-semibold whitespace-nowrap px-4 py-3">
+                    Công ty
+                  </TableHead>
+                  <TableHead className="text-center text-gray-700 font-semibold whitespace-nowrap px-4 py-3">
+                    Trụ sở
+                  </TableHead>
+                  <TableHead className="text-center w-[200px] text-gray-700 font-semibold whitespace-nowrap px-4 py-3">
                     Địa điểm
                   </TableHead>
-                  <TableHead className="text-center">Website</TableHead>
-                  <TableHead className="text-center">Mã số thuế</TableHead>
-                  <TableHead className="text-center">
-                    Giấy phép kinh doanh
+                  <TableHead className="text-center text-gray-700 font-semibold whitespace-nowrap px-4 py-3">
+                    Website
                   </TableHead>
-                  <TableHead className="text-center">Trạng thái</TableHead>
-                  <TableHead className="text-center">Ngày tạo</TableHead>
-                  <TableHead className="text-center">Ngày cập nhật</TableHead>
-                  <TableHead className="text-center">Thao tác</TableHead>
+                  <TableHead className="text-center text-gray-700 font-semibold whitespace-nowrap px-4 py-3">
+                    Mã số thuế
+                  </TableHead>
+                  <TableHead className="text-center text-gray-700 font-semibold whitespace-nowrap px-4 py-3">
+                    Giấy phép KD
+                  </TableHead>
+                  <TableHead className="text-center text-gray-700 font-semibold whitespace-nowrap px-4 py-3">
+                    Trạng thái
+                  </TableHead>
+                  <TableHead className="text-center text-gray-700 font-semibold whitespace-nowrap px-4 py-3">
+                    Ngày tạo
+                  </TableHead>
+                  <TableHead className="text-center text-gray-700 font-semibold whitespace-nowrap px-4 py-3">
+                    Ngày cập nhật
+                  </TableHead>
+                  <TableHead className="text-center text-gray-700 font-semibold whitespace-nowrap px-4 py-3">
+                    Thao tác
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {companies.map((company) => (
-                  <TableRow key={company._id}>
-                    <TableCell>
+                  <TableRow key={company._id} className="hover:bg-gray-50 transition border-b border-gray-100">
+                    <TableCell className="px-4 py-3 whitespace-nowrap">
                       <div className="flex items-center gap-3">
-                        <Avatar className="h-10 w-10">
+                        <Avatar className="h-9 w-9 md:h-10 md:w-10 rounded-md shadow-sm shrink-0">
                           <AvatarImage
                             src={company.logo || ""}
                             alt={company.name}
+                            className="object-contain"
                           />
-                          <AvatarFallback className="bg-blue-100 text-blue-600">
+                          <AvatarFallback className="bg-blue-100 text-blue-600 rounded-md">
                             {company.name.charAt(0)}
                           </AvatarFallback>
                         </Avatar>
-                        <div>
-                          <div className="font-medium max-w-[200px] line-clamp-1">
+                        <div className="flex flex-col">
+                          <div className="font-medium text-sm md:text-base text-gray-900 max-w-[200px] truncate">
                             <CustomTooltip content={company.name}>
                               <span className="block">{company.name}</span>
                             </CustomTooltip>
                           </div>
-                          <div className="max-w-[200px] text-sm text-gray-500 truncate">
+                          <div className="text-xs text-gray-500 max-w-[200px] truncate">
                             {company.description}
                           </div>
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="text-center">
-                      <div className="truncate">{company.location}</div>
+                    <TableCell className="px-4 py-3 text-center whitespace-nowrap">
+                      <div className="truncate text-sm">{company.location}</div>
                     </TableCell>
-                    <TableCell className="text-center">
-                      <div className="truncate max-w-[200px] ">
-                        {company.address || "Chưa cập nhật địa điểm"}
+                    <TableCell className="px-4 py-3 text-center whitespace-nowrap">
+                      <div className="truncate max-w-[200px] text-sm">
+                        {company.address || "Chưa cập nhật"}
                       </div>
                     </TableCell>
-                    <TableCell className="text-center">
+                    <TableCell className="px-4 py-3 text-center whitespace-nowrap">
                       {company.website && (
                         <a
                           href={company.website}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline"
+                          className="text-blue-600 hover:underline text-sm"
                         >
                           {new URL(company.website).hostname}
                         </a>
                       )}
                     </TableCell>
-                    <TableCell className="text-center">
+                    <TableCell className="px-4 py-3 text-center whitespace-nowrap text-sm">
                       {company.taxCode}
                     </TableCell>
-                    <TableCell className="text-center">
+                    <TableCell className="px-4 py-3 text-center whitespace-nowrap">
                       {company.businessLicense && (
                         <a
                           href={company.businessLicense}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline"
+                          className="text-blue-600 hover:underline text-sm"
                         >
                           Xem Giấy phép
                         </a>
                       )}
                     </TableCell>
                     {/* Approval status */}
-                    <TableCell className="text-center">
+                    <TableCell className="px-4 py-3 text-center whitespace-nowrap">
                       {company.approval === "rejected" ? (
                         <TooltipProvider>
                           <Tooltip>
@@ -283,17 +300,17 @@ const Company = () => {
                                 className="px-3 py-1 rounded-full font-medium bg-red-100 text-red-700 cursor-help"
                                 variant="outline"
                                 style={{
-                                  minWidth: 110,
+                                  minWidth: 100,
                                   justifyContent: "center",
                                 }}
                               >
-                                <div className="flex items-center gap-1 justify-center">
-                                  <XCircle className="w-4 h-4" />
-                                  Từ chối
+                                <div className="flex items-center gap-1 justify-center whitespace-nowrap">
+                                  <XCircle className="w-4 h-4 shrink-0" />
+                                  <span>Từ chối</span>
                                 </div>
                               </Badge>
                             </TooltipTrigger>
-                            <TooltipContent className="bg-gray-900 text-white p-3 rounded-lg max-w-[300px] text-sm">
+                            <TooltipContent className="bg-gray-900 text-white p-3 rounded-lg max-w-[250px] md:max-w-[300px] text-sm">
                               <p className="whitespace-pre-wrap">
                                 Lý do: {company.approvalNote || "Không có"}
                               </p>
@@ -309,41 +326,39 @@ const Company = () => {
                               : "bg-yellow-100 text-yellow-700")
                           }
                           variant="outline"
-                          style={{ minWidth: 110, justifyContent: "center" }}
+                          style={{ minWidth: 100, justifyContent: "center" }}
                         >
-                          <div className="flex items-center gap-1 justify-center">
+                          <div className="flex items-center gap-1 justify-center whitespace-nowrap">
                             {company.approval === "approved" ? (
-                              <CheckCircle2 className="w-4 h-4" />
+                              <CheckCircle2 className="w-4 h-4 shrink-0" />
                             ) : (
-                              <AlertCircle className="w-4 h-4" />
+                              <AlertCircle className="w-4 h-4 shrink-0" />
                             )}
-                            {company.approval === "approved"
-                              ? "Đã duyệt"
-                              : "Chờ duyệt"}
+                            <span>{company.approval === "approved" ? "Đã duyệt" : "Chờ duyệt"}</span>
                           </div>
                         </Badge>
                       )}
                     </TableCell>
-                    <TableCell className="text-center">
+                    <TableCell className="px-4 py-3 text-center whitespace-nowrap text-sm text-gray-600">
                       {new Date(company.createdAt).toLocaleDateString("vi-VN", {
                         year: "numeric",
                         month: "2-digit",
                         day: "2-digit",
                       })}
                     </TableCell>
-                    <TableCell className="text-center">
+                    <TableCell className="px-4 py-3 text-center whitespace-nowrap text-sm text-gray-600">
                       {new Date(company.updatedAt).toLocaleDateString("vi-VN", {
                         year: "numeric",
                         month: "2-digit",
                         day: "2-digit",
                       })}
                     </TableCell>
-                    <TableCell className="text-center">
-                      <div className="flex items-center justify-center gap-2">
+                    <TableCell className="px-4 py-3 text-center whitespace-nowrap">
+                      <div className="flex items-center justify-center gap-1">
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="hover:bg-blue-50 text-blue-600 cursor-pointer"
+                          className="hover:bg-blue-50 text-blue-600 cursor-pointer h-8 w-8"
                           onClick={() => {
                             dispatch(setSelectedCompany(company));
                             setIsDialogOpen(true);
@@ -354,7 +369,7 @@ const Company = () => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="hover:bg-red-50 text-red-600 cursor-pointer"
+                          className="hover:bg-red-50 text-red-600 cursor-pointer h-8 w-8"
                           onClick={() => handleDelete(company?._id)}
                         >
                           <Trash2 className="h-4 w-4" />
@@ -366,8 +381,8 @@ const Company = () => {
               </TableBody>
             </Table>
           ) : (
-            <div className="text-center py-6">
-              <p className="text-gray-500">Chưa có công ty nào được thêm.</p>
+            <div className="text-center py-10 px-4">
+              <p className="text-gray-500 text-sm md:text-base">Chưa có công ty nào được thêm.</p>
               <Button
                 className="cursor-pointer mt-4 bg-blue-600 hover:bg-blue-700 text-white"
                 onClick={() => {
