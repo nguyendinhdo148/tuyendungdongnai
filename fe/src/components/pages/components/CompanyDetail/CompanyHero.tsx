@@ -24,7 +24,8 @@ const CompanyHero = ({ company, jobs, viewCount }: CompanyHeroProps) => {
 
   return (
     <div className="relative overflow-hidden" ref={heroRef}>
-      <div className="h-[28rem] bg-gradient-to-r from-emerald-600 via-teal-500 to-cyan-500 relative">
+      {/* Đổi h-[28rem] thành min-h-[28rem] lg:h-[28rem] để mobile ko bị tràn */}
+      <div className="min-h-[28rem] lg:h-[28rem] bg-gradient-to-r from-emerald-600 via-teal-500 to-cyan-500 relative">
         {/* Animated Background Elements */}
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-r from-black/10 via-transparent to-black/5" />
@@ -66,65 +67,86 @@ const CompanyHero = ({ company, jobs, viewCount }: CompanyHeroProps) => {
           </div>
         </div>
 
-        <div className="container mx-auto px-4 h-full flex items-end pb-16 relative z-10">
-          <div className="flex items-center gap-8 w-full">
-            <div className="relative group">
+        {/* Nội dung chính: Thêm pt-24 pb-12 cho mobile để không bị đè bởi Navbar */}
+        <div className="container mx-auto px-4 h-full flex items-end pt-24 pb-12 md:pb-16 relative z-10">
+          
+          {/* Tối ưu Layout: Mobile xếp dọc căn giữa, Desktop xếp ngang căn dưới */}
+          <div className="flex flex-col md:flex-row items-center md:items-end gap-5 md:gap-8 w-full text-center md:text-left">
+            
+            {/* Avatar - Bo nhỏ trên mobile */}
+            <div className="relative group shrink-0">
               <div className="absolute -inset-1 bg-gradient-to-r from-white/30 to-white/10 rounded-3xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-tilt"></div>
-              <Avatar className="relative size-38 rounded-lg border-4 border-white/40 shadow-2xl group-hover:scale-105 transition-transform duration-300">
+              {/* Đổi size-38 thành size-28 cho mobile, md:size-38 cho màn hình lớn */}
+              <Avatar className="relative size-28 md:w-[152px] md:h-[152px] rounded-lg border-4 border-white/40 shadow-2xl group-hover:scale-105 transition-transform duration-300">
                 <AvatarImage
                   src={company.logo || ""}
                   alt={company.name}
                   className="object-contain"
                 />
-                <AvatarFallback className="bg-white text-emerald-600 text-3xl font-bold">
+                <AvatarFallback className="bg-white text-emerald-600 text-2xl md:text-3xl font-bold">
                   {company.name.charAt(0)}
                 </AvatarFallback>
               </Avatar>
-              <div className="absolute -bottom-3 -right-3 w-10 h-10 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full border-4 border-white flex items-center justify-center shadow-lg">
-                <Crown className="w-6 h-6 text-white" />
+              {/* Căn lại vị trí crown cho cân xứng với avatar nhỏ */}
+              <div className="absolute -bottom-2 -right-2 md:-bottom-3 md:-right-3 size-8 md:size-10 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full border-2 md:border-4 border-white flex items-center justify-center shadow-lg">
+                <Crown className="w-4 h-4 md:w-6 md:h-6 text-white" />
               </div>
             </div>
 
-            <div className="flex-1 mt-4">
-              <div className="flex items-center gap-3 mb-3">
-                <h1 className="text-5xl font-bold text-white drop-shadow-lg">
+            {/* Thông tin chữ */}
+            <div className="flex-1 mt-2 md:mt-4 w-full flex flex-col items-center md:items-start">
+              
+              {/* Tên công ty & Badge */}
+              <div className="flex flex-col sm:flex-row items-center gap-2 md:gap-3 mb-3 md:mb-4">
+                {/* Giảm size chữ mobile xuống 3xl, cho phép line-clamp nếu tên quá dài */}
+                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white drop-shadow-lg leading-tight">
                   {company.name}
                 </h1>
-                <Badge className="bg-white/20 text-white border-white/30 hover:bg-white/30 transition-colors">
+                <Badge className="bg-white/20 text-white border-white/30 hover:bg-white/30 transition-colors whitespace-nowrap shrink-0">
                   <Shield className="w-3 h-3 mr-1" />
                   Verified
                 </Badge>
               </div>
 
-              <div className="flex items-center gap-6 text-white/90 mb-4">
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-5 w-5" />
-                  <span className="font-medium">
+              {/* Hàng thông tin phụ: flex-wrap + whitespace-nowrap để không gãy lộn xộn */}
+              <div className="flex flex-wrap justify-center md:justify-start items-center gap-x-4 md:gap-x-6 gap-y-2 text-white/90 mb-4 md:mb-5 text-sm md:text-base">
+                <div className="flex items-center gap-1.5 whitespace-nowrap">
+                  <MapPin className="h-4 w-4 md:h-5 md:w-5 shrink-0" />
+                  <span className="font-medium truncate max-w-[180px] sm:max-w-none">
                     {company.location || "Chưa cập nhật địa điểm"}
                   </span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
+                
+                {/* Dấu chấm ngăn cách trên Desktop (Ẩn ở mobile nếu xuống dòng) */}
+                <div className="hidden sm:block w-1 h-1 rounded-full bg-white/40" />
+
+                <div className="flex items-center gap-1.5 whitespace-nowrap">
+                  <Users className="h-4 w-4 md:h-5 md:w-5 shrink-0" />
                   <span className="font-medium">{company.noe} Nhân viên</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Eye className="h-5 w-5" />
+
+                <div className="hidden sm:block w-1 h-1 rounded-full bg-white/40" />
+
+                <div className="flex items-center gap-1.5 whitespace-nowrap">
+                  <Eye className="h-4 w-4 md:h-5 md:w-5 shrink-0" />
                   <span className="font-medium">
                     {viewCount.toLocaleString()} lượt xem
                   </span>
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 mb-6">
-                <Badge className="bg-white/20 text-white border-white/30 px-4 py-2">
-                  <Briefcase className="w-3 h-3 mr-1" />
+              {/* Hàng Nút Bấm: Cho phép rớt xuống dòng nếu không đủ chỗ */}
+              <div className="flex flex-wrap justify-center md:justify-start items-center gap-2 md:gap-4 mb-2">
+                <Badge className="bg-white/20 text-white border-white/30 px-3 py-1.5 md:px-4 md:py-2 whitespace-nowrap text-xs md:text-sm">
+                  <Briefcase className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-1.5" />
                   {jobs.length} việc làm
                 </Badge>
-                <Badge className="bg-white/20 text-white border-white/30 px-4 py-2">
-                  <TrendingUp className="w-3 h-3 mr-1" />
+                <Badge className="bg-white/20 text-white border-white/30 px-3 py-1.5 md:px-4 md:py-2 whitespace-nowrap text-xs md:text-sm">
+                  <TrendingUp className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-1.5" />
                   Đang phát triển
                 </Badge>
               </div>
+              
             </div>
           </div>
         </div>

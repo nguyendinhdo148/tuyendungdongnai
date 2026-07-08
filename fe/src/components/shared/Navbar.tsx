@@ -47,23 +47,24 @@ const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
+  // Logic Đăng xuất
   const logoutHandler = async () => {
     try {
-      const res = await axios.post(
+      await axios.post(
         `${API}/user/logout`,
         {},
         {
           withCredentials: true,
         }
       );
-      if (res.data.success) {
-        dispatch(setUser(null));
-        navigate("/");
-        toast.success("Đăng xuất thành công!");
-      }
     } catch (error) {
-      console.error(error);
-      toast.error(error instanceof Error ? error.message : "An unknown error");
+      console.error("Logout Error:", error);
+    } finally {
+      // Dù API có lỗi (vd: token hết hạn 401) vẫn xóa state và đẩy về trang chủ
+      dispatch(setUser(null));
+      navigate("/");
+      setMobileMenuOpen(false);
+      toast.success("Đăng xuất thành công!");
     }
   };
 
@@ -79,13 +80,27 @@ const Navbar = () => {
     setMobileMenuOpen(false);
   }, [navigate]);
 
+  // Ngăn chặn cuộn body khi mở menu mobile
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, [mobileMenuOpen]);
+
   return (
-    <div className={`sticky top-0 z-50 w-full bg-white shadow transition-all duration-300 ${
-      scrolled ? "shadow-md" : "shadow"
-    }`}>
-      <div className="flex items-center justify-between w-full px-3 sm:px-4 md:px-6 h-16 sm:h-18">
+    <div
+      className={`sticky top-0 z-50 w-full bg-white transition-all duration-300 ${
+        scrolled ? "shadow-md" : "shadow"
+      }`}
+    >
+      <div className="flex items-center justify-between w-full px-3 sm:px-4 md:px-6 h-16 sm:h-18 relative">
         {/* Logo */}
-        <div className="mb-1 flex-shrink-0">
+        <div className="mb-1 flex-shrink-0 z-50">
           <Link to="/" className="block">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
@@ -108,8 +123,8 @@ const Navbar = () => {
         </div>
 
         {/* Right Section */}
-        <div className="flex items-center gap-2 sm:gap-3 md:gap-12">
-          {/* Desktop Navigation - GIỮ NGUYÊN */}
+        <div className="flex items-center gap-2 sm:gap-3 md:gap-12 z-50">
+          {/* Desktop Navigation */}
           <motion.nav
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -130,6 +145,7 @@ const Navbar = () => {
               Việc làm
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-indigo-600 transition-all duration-300 group-hover:w-full"></span>
             </Link>
+
             <HoverCard openDelay={100} closeDelay={300}>
               <HoverCardTrigger asChild>
                 <span className="text-gray-700 hover:text-indigo-600 font-medium transition-colors relative group cursor-pointer px-2 py-1 text-sm">
@@ -143,119 +159,54 @@ const Navbar = () => {
                 sideOffset={12}
                 className="relative w-[450px] grid grid-cols-2 gap-6 p-6 bg-white rounded-xl shadow-2xl border border-gray-100 z-50"
               >
-                <div
-                  className="absolute -top-2 left-1/2 -translate-x-1/2 w-0 h-0 
-                            border-l-8 border-r-8 border-b-8 border-l-transparent 
-                            border-r-transparent border-b-gray-200"
-                ></div>
-
+                <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-0 h-0 border-l-8 border-r-8 border-b-8 border-l-transparent border-r-transparent border-b-gray-200"></div>
                 <div>
                   <h4 className="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wide">
                     Hỗ trợ ứng viên
                   </h4>
                   <ul className="space-y-3">
                     <li>
-                      <Link
-                        to="/tools/resume-review"
-                        className="flex items-center gap-3 text-gray-700 hover:text-indigo-600 transition text-sm"
-                      >
-                        <FileText className="w-4 h-4 text-indigo-500" />
-                        Phân tích CV
-                      </Link>
+                      <Link to="/tools/resume-review" className="flex items-center gap-3 text-gray-700 hover:text-indigo-600 transition text-sm"><FileText className="w-4 h-4 text-indigo-500" /> Phân tích CV</Link>
                     </li>
                     <li>
-                      <Link
-                        to="/tools/mbti"
-                        className="flex items-center gap-3 text-gray-700 hover:text-indigo-600 transition text-sm"
-                      >
-                        <Brain className="w-4 h-4 text-indigo-500" />
-                        Trắc nghiệm MBTI
-                      </Link>
+                      <Link to="/tools/mbti" className="flex items-center gap-3 text-gray-700 hover:text-indigo-600 transition text-sm"><Brain className="w-4 h-4 text-indigo-500" /> Trắc nghiệm MBTI</Link>
                     </li>
                     <li>
-                      <Link
-                        to="/tools/mi"
-                        className="flex items-center gap-3 text-gray-700 hover:text-indigo-600 transition text-sm"
-                      >
-                        <BrainCog className="w-4 h-4 text-indigo-500" />
-                        Trắc nghiệm MI
-                      </Link>
+                      <Link to="/tools/mi" className="flex items-center gap-3 text-gray-700 hover:text-indigo-600 transition text-sm"><BrainCog className="w-4 h-4 text-indigo-500" /> Trắc nghiệm MI</Link>
                     </li>
                     <li>
-                      <Link
-                        to="/tools/gross-net"
-                        className="flex items-center gap-3 text-gray-700 hover:text-indigo-600 transition text-sm"
-                      >
-                        <Coins className="w-4 h-4 text-indigo-500" />
-                        Tính lương Gross/Net
-                      </Link>
+                      <Link to="/tools/gross-net" className="flex items-center gap-3 text-gray-700 hover:text-indigo-600 transition text-sm"><Coins className="w-4 h-4 text-indigo-500" /> Tính lương Gross/Net</Link>
                     </li>
                   </ul>
                 </div>
-
                 <div>
                   <h4 className="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wide">
                     Tiện ích khác
                   </h4>
                   <ul className="space-y-3">
                     <li>
-                      <Link
-                        to="/tools/personal-tax"
-                        className="flex items-center gap-3 text-gray-700 hover:text-indigo-600 transition text-sm"
-                      >
-                        <SquareRadical className="w-4 h-4 text-indigo-500" />
-                        Tính thuế cá nhân
-                      </Link>
+                      <Link to="/tools/personal-tax" className="flex items-center gap-3 text-gray-700 hover:text-indigo-600 transition text-sm"><SquareRadical className="w-4 h-4 text-indigo-500" /> Tính thuế cá nhân</Link>
                     </li>
                     <li>
-                      <Link
-                        to="/tools/compound-interest"
-                        className="flex items-center gap-3 text-gray-700 hover:text-indigo-600 transition text-sm"
-                      >
-                        <LineChart className="w-4 h-4 text-indigo-500" />
-                        Tính lãi suất kép
-                      </Link>
+                      <Link to="/tools/compound-interest" className="flex items-center gap-3 text-gray-700 hover:text-indigo-600 transition text-sm"><LineChart className="w-4 h-4 text-indigo-500" /> Tính lãi suất kép</Link>
                     </li>
                     <li>
-                      <Link
-                        to="/tools/unemployment-insurance"
-                        className="flex items-center gap-3 text-gray-700 hover:text-indigo-600 transition text-sm"
-                      >
-                        <ChartSpline className="w-4 h-4 text-indigo-500" />
-                        Tính BHTN
-                      </Link>
+                      <Link to="/tools/unemployment-insurance" className="flex items-center gap-3 text-gray-700 hover:text-indigo-600 transition text-sm"><ChartSpline className="w-4 h-4 text-indigo-500" /> Tính BHTN</Link>
                     </li>
                     <li>
-                      <Link
-                        to="/tools/social-insurance"
-                        className="flex items-center gap-3 text-gray-700 hover:text-indigo-600 transition text-sm"
-                      >
-                        <ChartScatter className="w-4 h-4 text-indigo-500" />
-                        Tính BHXH
-                      </Link>
+                      <Link to="/tools/social-insurance" className="flex items-center gap-3 text-gray-700 hover:text-indigo-600 transition text-sm"><ChartScatter className="w-4 h-4 text-indigo-500" /> Tính BHXH</Link>
                     </li>
                     <li>
-                      <Link
-                        to="/tools/saving-plan"
-                        className="flex items-center gap-3 text-gray-700 hover:text-indigo-600 transition text-sm"
-                      >
-                        <PiggyBank className="w-4 h-4 text-indigo-500" />
-                        Kế hoạch tiết kiệm
-                      </Link>
+                      <Link to="/tools/saving-plan" className="flex items-center gap-3 text-gray-700 hover:text-indigo-600 transition text-sm"><PiggyBank className="w-4 h-4 text-indigo-500" /> Kế hoạch tiết kiệm</Link>
                     </li>
                     <li>
-                      <Link
-                        to="/tools/mobile-app"
-                        className="flex items-center gap-3 text-gray-700 hover:text-indigo-600 transition text-sm"
-                      >
-                        <Smartphone className="w-4 h-4 text-indigo-500" />
-                        Tải ứng dụng di động
-                      </Link>
+                      <Link to="/tools/mobile-app" className="flex items-center gap-3 text-gray-700 hover:text-indigo-600 transition text-sm"><Smartphone className="w-4 h-4 text-indigo-500" /> Tải ứng dụng di động</Link>
                     </li>
                   </ul>
                 </div>
               </HoverCardContent>
             </HoverCard>
+
             <Link
               to={"/blog"}
               className="text-gray-700 hover:text-indigo-600 font-medium transition-colors relative group text-sm"
@@ -272,32 +223,35 @@ const Navbar = () => {
             </Link>
           </motion.nav>
 
+          {/* Chưa đăng nhập */}
           {!user ? (
-            <div className="flex items-center gap-1 sm:gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2">
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
-                className="hidden md:flex items-center space-x-2 sm:space-x-4"
+                className="flex items-center gap-1.5 sm:gap-2"
               >
+                {/* Nút Đăng nhập/Đăng ký hiện ra ngoài Mobile luôn */}
                 <Link to="/login">
                   <Button
                     variant="outline"
-                    className="font-medium rounded-xl px-3 sm:px-6 border-indigo-200 text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-300 cursor-pointer text-xs sm:text-sm h-8 sm:h-10"
+                    className="font-medium rounded-lg px-2.5 sm:px-4 border-indigo-200 text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-300 cursor-pointer text-xs sm:text-sm h-8 sm:h-10"
                   >
-                    Đăng Nhập
+                    Đăng nhập
                   </Button>
                 </Link>
                 <Link to="/signup">
-                  <Button className="bg-gradient-to-r from-indigo-600 to-purple-500 hover:from-indigo-700 hover:to-purple-600 text-white font-medium rounded-xl px-3 sm:px-6 shadow-md shadow-indigo-200/50 cursor-pointer text-xs sm:text-sm h-8 sm:h-10">
-                    Đăng Ký
+                  <Button className="bg-gradient-to-r from-indigo-600 to-purple-500 hover:from-indigo-700 hover:to-purple-600 text-white font-medium rounded-lg px-2.5 sm:px-6 shadow-md shadow-indigo-200/50 cursor-pointer text-xs sm:text-sm h-8 sm:h-10">
+                    Đăng ký
                   </Button>
                 </Link>
               </motion.div>
 
+              {/* Nút Hamburger cho chưa đăng nhập */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                className="lg:hidden p-1.5 ml-0.5 rounded-lg hover:bg-gray-100 transition-colors"
                 aria-label="Toggle menu"
               >
                 {mobileMenuOpen ? (
@@ -308,25 +262,15 @@ const Navbar = () => {
               </button>
             </div>
           ) : (
+            /* Đã đăng nhập */
             user?.role === "student" && (
               <div className="flex items-center gap-2 sm:gap-3">
                 <NotificationBell />
-                
-                <button
-                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                  className="lg:hidden p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
-                  aria-label="Toggle menu"
-                >
-                  {mobileMenuOpen ? (
-                    <X className="h-5 w-5 text-gray-700" />
-                  ) : (
-                    <Menu className="h-5 w-5 text-gray-700" />
-                  )}
-                </button>
 
+                {/* Avatar Popover: HIỂN THỊ TRÊN CẢ MOBILE LẪN DESKTOP */}
                 <Popover>
                   <PopoverTrigger asChild>
-                    <div className="relative cursor-pointer size-8 sm:size-10 hidden sm:block">
+                    <div className="relative cursor-pointer size-8 sm:size-10 block">
                       <Avatar className="w-full h-full">
                         <AvatarImage
                           src={user.profile?.profilePhoto?.url}
@@ -345,7 +289,7 @@ const Navbar = () => {
                       </div>
                     </div>
                   </PopoverTrigger>
-                  <PopoverContent className="w-72 sm:w-80 p-4 bg-white rounded-lg shadow-lg border border-gray-100">
+                  <PopoverContent className="w-72 sm:w-80 p-4 bg-white rounded-lg shadow-lg border border-gray-100 z-50">
                     <div className="flex items-center gap-4 pb-4 border-b border-gray-100">
                       <Avatar className="size-10 sm:size-12">
                         <AvatarImage
@@ -381,7 +325,6 @@ const Navbar = () => {
                           <span>Xem hồ sơ</span>
                         </Link>
                       </Button>
-
                       <Button
                         variant="default"
                         className="w-full justify-start gap-3 px-3 py-2 text-gray-700 hover:bg-gray-50 text-sm"
@@ -392,7 +335,6 @@ const Navbar = () => {
                           <span>CV của tôi</span>
                         </Link>
                       </Button>
-
                       <Button
                         variant="default"
                         className="w-full justify-start gap-3 px-3 py-2 text-gray-700 hover:bg-gray-50 text-sm"
@@ -403,7 +345,6 @@ const Navbar = () => {
                           <span>Việc làm đã lưu</span>
                         </Link>
                       </Button>
-
                       <Button
                         variant="default"
                         className="w-full justify-start gap-3 px-3 py-2 text-gray-700 hover:bg-gray-50 text-sm"
@@ -421,8 +362,8 @@ const Navbar = () => {
                           onClick={() => setOpenBlogMenu(!openBlogMenu)}
                         >
                           <span className="flex items-center gap-3">
-                            <Share2 className="h-4 w-4 text-gray-500" />
-                            Góc Chia Sẻ
+                            <Share2 className="h-4 w-4 text-gray-500" /> Góc
+                            Chia Sẻ
                           </span>
                           <ChevronDown
                             className={`h-4 w-4 text-gray-500 transition-transform ${
@@ -430,7 +371,6 @@ const Navbar = () => {
                             }`}
                           />
                         </Button>
-
                         {openBlogMenu && (
                           <div className="pl-9 mt-1 space-y-1 text-sm">
                             <Link
@@ -457,33 +397,45 @@ const Navbar = () => {
 
                       <Button
                         variant="default"
-                        className="cursor-pointer w-full justify-start gap-3 px-3 py-2 text-gray-700 hover:bg-gray-50 text-sm"
+                        className="cursor-pointer w-full justify-start gap-3 px-3 py-2 text-red-600 hover:bg-red-50 text-sm"
                         onClick={logoutHandler}
                       >
-                        <LogOut className="h-4 w-4 text-gray-500" />
+                        <LogOut className="h-4 w-4 text-red-500" />
                         <span>Đăng xuất</span>
                       </Button>
                     </div>
                   </PopoverContent>
                 </Popover>
+
+                {/* Nút Hamburger cho đã đăng nhập (Nằm bên phải Avatar) */}
+                <button
+                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                  className="lg:hidden p-1.5 rounded-lg hover:bg-gray-100 transition-colors ml-1"
+                  aria-label="Toggle menu"
+                >
+                  {mobileMenuOpen ? (
+                    <X className="h-5 w-5 text-gray-700" />
+                  ) : (
+                    <Menu className="h-5 w-5 text-gray-700" />
+                  )}
+                </button>
               </div>
             )
           )}
         </div>
       </div>
 
-      {/* Mobile Menu - ĐÃ TỐI ƯU GỌN NHẸ */}
+      {/* Mobile Menu (Hamburger) - Chỉ chứa thanh điều hướng chung và Công cụ */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-            className="lg:hidden bg-white border-t border-gray-100 overflow-y-auto max-h-[80vh]"
+            initial={{ opacity: 0, y: -15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -15 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+            className="lg:hidden absolute top-full left-0 w-full bg-white border-t border-gray-100 shadow-xl overflow-y-auto max-h-[calc(100vh-64px)] z-40"
           >
-            <div className="px-4 py-3 space-y-0.5">
-              {/* Main Menu */}
+            <div className="px-4 py-3 space-y-1">
               <Link
                 to="/"
                 className="flex items-center gap-3 px-3 py-2.5 text-gray-700 hover:bg-indigo-50 rounded-lg text-sm font-medium"
@@ -491,7 +443,6 @@ const Navbar = () => {
               >
                 Trang chủ
               </Link>
-
               <Link
                 to="/jobs"
                 className="flex items-center gap-3 px-3 py-2.5 text-gray-700 hover:bg-indigo-50 rounded-lg text-sm font-medium"
@@ -499,7 +450,6 @@ const Navbar = () => {
               >
                 Việc làm
               </Link>
-
               <Link
                 to="/blog"
                 className="flex items-center gap-3 px-3 py-2.5 text-gray-700 hover:bg-indigo-50 rounded-lg text-sm font-medium"
@@ -507,7 +457,6 @@ const Navbar = () => {
               >
                 Góc chia sẻ
               </Link>
-
               <Link
                 to="/resume"
                 className="flex items-center gap-3 px-3 py-2.5 text-gray-700 hover:bg-indigo-50 rounded-lg text-sm font-medium"
@@ -516,16 +465,15 @@ const Navbar = () => {
                 Tạo CV
               </Link>
 
-              {/* Tools - Gom gọn */}
+              {/* Tools Menu trong Hamburger */}
               <details className="group">
-                <summary className="flex items-center gap-3 px-3 py-2.5 text-gray-700 hover:bg-indigo-50 rounded-lg text-sm font-medium cursor-pointer">
-                  
+                <summary className="flex items-center gap-3 px-3 py-2.5 text-gray-700 hover:bg-indigo-50 rounded-lg text-sm font-medium cursor-pointer list-none">
                   <span>Công cụ</span>
                   <ChevronDown className="h-4 w-4 ml-auto transition-transform group-open:rotate-180" />
                 </summary>
-                <div className="ml-6 mt-1 space-y-0.5">
+                <div className="ml-6 mt-1 mb-2 space-y-1">
                   {[
-                     ["/tools/resume-review", " Phân tích CV"],
+                    ["/tools/resume-review", "Phân tích CV"],
                     ["/tools/mbti", "Trắc nghiệm MBTI"],
                     ["/tools/mi", "Trắc nghiệm MI"],
                     ["/tools/gross-net", "Tính lương Gross/Net"],
@@ -539,86 +487,15 @@ const Navbar = () => {
                     <Link
                       key={path}
                       to={path}
-                      className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:bg-indigo-50 rounded-lg text-sm"
+                      className="flex items-center gap-2 px-3 py-2.5 text-gray-600 hover:bg-indigo-50 rounded-lg text-sm"
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      <span className="w-2 h-2 bg-indigo-400 rounded-full"></span>
+                      <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full"></span>
                       {label}
                     </Link>
                   ))}
                 </div>
               </details>
-
-              {/* User Menu - Chỉ khi đã login */}
-              {user?.role === "student" && (
-                <>
-                  <div className="border-t border-gray-100 my-2" />
-                  
-                  <Link
-                    to="/profile"
-                    className="flex items-center gap-3 px-3 py-2.5 text-gray-700 hover:bg-indigo-50 rounded-lg text-sm font-medium"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <User2 className="h-4 w-4" />
-                    Xem hồ sơ
-                  </Link>
-
-                  <Link
-                    to="/resume/dashboard-resume"
-                    className="flex items-center gap-3 px-3 py-2.5 text-gray-700 hover:bg-indigo-50 rounded-lg text-sm font-medium"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <FileText className="h-4 w-4" />
-                    CV của tôi
-                  </Link>
-
-                  <Link
-                    to="/saved-jobs"
-                    className="flex items-center gap-3 px-3 py-2.5 text-gray-700 hover:bg-indigo-50 rounded-lg text-sm font-medium"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <Heart className="h-4 w-4" />
-                    Việc làm đã lưu
-                  </Link>
-
-                  <Link
-                    to="/applied-jobs"
-                    className="flex items-center gap-3 px-3 py-2.5 text-gray-700 hover:bg-indigo-50 rounded-lg text-sm font-medium"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <BriefcaseBusiness className="h-4 w-4" />
-                    Việc làm đã ứng tuyển
-                  </Link>
-
-                  {/* Logout */}
-                  <button
-                    onClick={() => {
-                      logoutHandler();
-                      setMobileMenuOpen(false);
-                    }}
-                    className="flex items-center gap-3 px-3 py-2.5 text-red-600 hover:bg-red-50 rounded-lg text-sm font-medium w-full"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    Đăng xuất
-                  </button>
-                </>
-              )}
-
-              {/* Login/Register - Chỉ khi chưa login */}
-              {!user && (
-                <div className="border-t border-gray-100 pt-3 mt-2 space-y-2">
-                  <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
-                    <Button className="w-full bg-gradient-to-r from-indigo-600 to-purple-500 text-white rounded-xl text-sm h-10">
-                      Đăng nhập
-                    </Button>
-                  </Link>
-                  <Link to="/signup" onClick={() => setMobileMenuOpen(false)}>
-                    <Button variant="outline" className="w-full rounded-xl text-sm h-10">
-                      Đăng ký
-                    </Button>
-                  </Link>
-                </div>
-              )}
             </div>
           </motion.div>
         )}
