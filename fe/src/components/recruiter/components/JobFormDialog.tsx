@@ -29,12 +29,12 @@ export interface JobFormData {
   title: string;
   description: string;
   requirements: string[];
-  salary: number;
+  salary: number | "";
   benefits: string[];
   location: string;
   jobType: string;
-  experienceLevel: number;
-  position: number;
+  experienceLevel: number | "";
+  position: number | "";
   category: string;
   company: {
     _id: string;
@@ -55,11 +55,11 @@ const initialFormData: JobFormData = {
   description: "",
   requirements: [],
   benefits: [],
-  salary: 0,
+  salary: "", // Sửa thành rỗng
   location: "",
   jobType: "",
-  experienceLevel: 0,
-  position: 1,
+  experienceLevel: "", // Sửa thành rỗng
+  position: "", // Sửa thành rỗng
   category: "",
   company: {
     _id: "",
@@ -114,11 +114,11 @@ export const JobFormDialog = ({
         description: job.description,
         requirements: job.requirements,
         benefits: job.benefits,
-        salary: Number(job.salary) || 0,
+        salary: Number(job.salary) || "",
         location: job.location,
         jobType: job.jobType,
-        experienceLevel: job.experienceLevel,
-        position: job.position,
+        experienceLevel: job.experienceLevel !== undefined && job.experienceLevel !== null ? job.experienceLevel : "",
+        position: job.position || "",
         category: job.category,
         company: {
           _id: job.company?._id || "",
@@ -159,12 +159,18 @@ export const JobFormDialog = ({
       toast.error("Công ty chưa được duyệt nên không thể đăng tin tuyển dụng.");
       return;
     }
-    if (formData.salary <= 0) {
-      toast.error("Vui lòng nhập mức lương hợp lệ");
+    
+    // Check validation các trường số
+    if (formData.salary === "" || Number(formData.salary) <= 0) {
+      toast.error("Vui lòng nhập mức lương hợp lệ lớn hơn 0");
       return;
     }
-    if (formData.experienceLevel < 0) {
+    if (formData.experienceLevel === "" || Number(formData.experienceLevel) < 0) {
       toast.error("Vui lòng nhập số năm kinh nghiệm hợp lệ");
+      return;
+    }
+    if (formData.position === "" || Number(formData.position) < 1) {
+      toast.error("Vui lòng nhập số lượng tuyển hợp lệ (ít nhất 1)");
       return;
     }
 
@@ -358,7 +364,6 @@ export const JobFormDialog = ({
               <Label htmlFor="description">
                 Mô tả công việc <span className="text-red-700">*</span>
               </Label>
-              {/* Đã xóa nút AI cũ ở đây */}
               <Textarea
                 id="description"
                 value={formData.description}
@@ -429,6 +434,7 @@ export const JobFormDialog = ({
                   onValueChange={(value) =>
                     setFormData({ ...formData, jobType: value })
                   }
+                  required
                 >
                   <SelectTrigger
                     id="jobType"
@@ -495,11 +501,11 @@ export const JobFormDialog = ({
                   onChange={(e) =>
                     setFormData({
                       ...formData,
-                      experienceLevel: parseInt(e.target.value) || 0,
+                      experienceLevel: e.target.value === "" ? "" : Number(e.target.value),
                     })
                   }
                   placeholder="VD: 2"
-                  className="resize-none focus:ring-indigo-500"
+                  className="resize-none focus:ring-indigo-500 invalid:[&:not(:placeholder-shown):not(:focus)]:border-red-500"
                   required
                 />
               </div>
@@ -511,15 +517,16 @@ export const JobFormDialog = ({
                 <Input
                   id="salary"
                   type="number"
+                  min="1"
                   value={formData.salary}
                   onChange={(e) =>
                     setFormData({
                       ...formData,
-                      salary: parseInt(e.target.value) || 0,
+                      salary: e.target.value === "" ? "" : Number(e.target.value),
                     })
                   }
                   placeholder="VD: 15"
-                  className="resize-none focus:ring-indigo-500"
+                  className="resize-none focus:ring-indigo-500 invalid:[&:not(:placeholder-shown):not(:focus)]:border-red-500"
                   required
                 />
               </div>
@@ -536,11 +543,11 @@ export const JobFormDialog = ({
                   onChange={(e) =>
                     setFormData({
                       ...formData,
-                      position: parseInt(e.target.value) || 1,
+                      position: e.target.value === "" ? "" : Number(e.target.value),
                     })
                   }
                   placeholder="VD: 1"
-                  className="resize-none focus:ring-indigo-500"
+                  className="resize-none focus:ring-indigo-500 invalid:[&:not(:placeholder-shown):not(:focus)]:border-red-500"
                   required
                 />
               </div>
