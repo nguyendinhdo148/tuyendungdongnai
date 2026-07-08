@@ -69,6 +69,7 @@ const RecruiterLayout = () => {
       if (res.data.success) {
         toast.success("Đăng xuất thành công!");
       }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       console.log("Backend báo lỗi token, nhưng cứ ép đăng xuất ở frontend");
       // Có thể tùy chọn hiện toast báo đăng xuất (bạn có thể bỏ nếu không muốn)
