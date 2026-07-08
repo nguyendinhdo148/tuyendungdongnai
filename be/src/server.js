@@ -26,10 +26,25 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+const allowedOrigins = [
+  "https://www.tuyendungdongnai.com", // Khi có www
+  "https://tuyendungdongnai.com",     // Khi không có www
+  "http://localhost:5173",            // Chạy dưới local của bạn
+  process.env.URL_CLIENT              // Giữ lại link cũ
+];
+
 const corsOptions = {
-  origin: process.env.URL_CLIENT,
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes(origin + "/")) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true,
 };
+
+app.use(cors(corsOptions));
 
 app.use(cors(corsOptions));
 
