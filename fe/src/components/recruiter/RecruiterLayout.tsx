@@ -22,7 +22,7 @@ const RecruiterLayout = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { user } = useSelector((store: RootState) => store.auth);
-  
+
   // Mặc định là false để không vướng víu trên mobile lúc mới vào
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -58,6 +58,7 @@ const RecruiterLayout = () => {
 
   const handleLogout = async () => {
     try {
+      // Cứ gọi API logout lên backend, được thì tốt, báo lỗi cũng không sao
       const res = await axios.post(
         `${API}/user/logout`,
         {},
@@ -66,13 +67,16 @@ const RecruiterLayout = () => {
         }
       );
       if (res.data.success) {
-        dispatch(setUser(null));
-        navigate("/login");
         toast.success("Đăng xuất thành công!");
       }
     } catch (error) {
-      console.error("Logout error:", error);
-      toast.error("Có lỗi xảy ra khi đăng xuất");
+      console.log("Backend báo lỗi token, nhưng cứ ép đăng xuất ở frontend");
+      // Có thể tùy chọn hiện toast báo đăng xuất (bạn có thể bỏ nếu không muốn)
+      toast.success("Đăng xuất thành công!");
+    } finally {
+      // Đưa đoạn này vào finally để DÙ THÀNH CÔNG HAY THẤT BẠI đều clear user
+      dispatch(setUser(null));
+      navigate("/login");
     }
   };
 
@@ -83,7 +87,7 @@ const RecruiterLayout = () => {
         <div className="flex items-center gap-3">
           <button
             onClick={() => setIsSidebarOpen(true)}
-            className="p-2 -ml-2 rounded-md hover:bg-gray-100 text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="p-2 -ml-2 rounded-md hover:bg-gray-100 text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
           >
             <Menu className="h-6 w-6" />
           </button>
