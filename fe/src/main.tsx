@@ -6,11 +6,15 @@ import { BrowserRouter } from "react-router-dom";
 import { Provider } from "react-redux";
 import { store, persistor } from "./redux/store.ts";
 import { PersistGate } from "redux-persist/integration/react";
-import { HelmetProvider } from "react-helmet-async"; // 1. Import thư viện SEO
+import { HelmetProvider } from "react-helmet-async";
+import axios from "axios"; // 1. IMPORT AXIOS
+
+// 2. BẬT TÍNH NĂNG GỬI KÈM COOKIE CHO MỌI REQUEST
+axios.defaults.withCredentials = true;
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <HelmetProvider> {/* 2. Bọc Provider này ở tầng cao nhất */}
+    <HelmetProvider>
       <BrowserRouter>
         <Provider store={store}>
           <PersistGate loading={null} persistor={persistor}>

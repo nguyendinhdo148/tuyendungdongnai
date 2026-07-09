@@ -44,13 +44,13 @@ export const isAuthenticated = async (req, res, next) => {
 
       // Set lại cookie accessToken cho client với cấu hình Domain chuẩn
       res.cookie("accessToken", accessToken, {
-        httpOnly: true,
+  httpOnly: true,
   secure: true,
-  sameSite: "none", // Sửa chữ "lax" thành "none"
-  // Đã xóa hoàn toàn dòng domain ở đây
+  sameSite: "none", 
+  domain: process.env.NODE_ENV === "production" ? ".tuyendungdongnai.com" : undefined,
   path: "/",
   maxAge: 15 * 60 * 1000,
-      });
+});
 
       // Lấy thông tin decoded từ token mới
       decoded = jwt.verify(accessToken, process.env.SECRET_KEY);

@@ -9,9 +9,11 @@ import { sendMail } from "../services/emailService.js";
 // Cấu hình Cookie dùng chung cho toàn bộ file
 const getCookieOptions = (maxAge) => ({
   httpOnly: true,
-secure: true,
-sameSite: "none", 
-path: "/",
+  secure: true,
+  sameSite: "none", // Đổi thành "none" để các POST request trên Mobile không bị chặn
+  domain: process.env.NODE_ENV === "production" ? ".tuyendungdongnai.com" : undefined,
+  path: "/",
+  maxAge: maxAge, 
 });
 
 const generateTokens = (userId) => {
@@ -169,9 +171,10 @@ export const logout = async (req, res, next) => {
     // Xóa cookies với tuỳ chọn tương tự lúc tạo
     const clearOptions = {
       httpOnly: true,
-secure: true,
-sameSite: "none", 
-path: "/",
+      secure: true,
+      sameSite: "none", // Đồng bộ thành "none" ở đây
+      domain: process.env.NODE_ENV === "production" ? ".tuyendungdongnai.com" : undefined,
+      path: "/",
     };
 
     res
