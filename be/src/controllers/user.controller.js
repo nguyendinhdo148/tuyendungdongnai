@@ -148,25 +148,38 @@ export const login = async (req, res, next) => {
 export const refreshToken = async (req, res) => {
   const { refreshToken } = req.cookies;
 
-  // Kiểm tra refresh token
+  if (!refreshToken) {
+    return res.status(401).json({ message: "No refresh token provided" });
+  }
+
   const user = await User.findOne({ refreshToken });
 
   if (!user || user.refreshTokenExpiry < Date.now()) {
     return res.status(401).json({ message: "Invalid refresh token" });
   }
 
-  // Tạo token mới
-  const { accessToken, newRefreshToken } = generateTokens(user._id);
+  const { accessToken, refreshToken: newRefreshToken } = generateTokens(user._id);
 
-  // Cập nhật refresh token mới
   await User.findByIdAndUpdate(user._id, {
     refreshToken: newRefreshToken,
     refreshTokenExpiry: Date.now() + 7 * 24 * 60 * 60 * 1000,
   });
 
   return res
-    .cookie("accessToken", accessToken)
-    .cookie("refreshToken", newRefreshToken)
+    .cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      path: "/",
+      maxAge: 15 * 60 * 1000,
+    })
+    .cookie("refreshToken", newRefreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      path: "/",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    })
     .json({ success: true });
 };
 
