@@ -3,29 +3,32 @@ import { User } from "../models/user.model.js";
 
 export const isAuthenticated = async (req, res, next) => {
   try {
+    // const token = req.cookies.token;
     let accessToken = req.cookies.accessToken;
+    /* if (!token) {
+      return res.status(401).json({
+        message: "You are not authenticated",
+        success: false,
+      });
+    }
+    */
 
+    // Nếu access token hết hạn, thử dùng refresh token
     if (!accessToken) {
       const refreshToken = req.cookies.refreshToken;
-      if (!refreshToken) {
-        return res.status(401).json({
-          message: "No tokens provided",
-          success: false,
-        });
-      }
+      if (!refreshToken) throw new Error("No tokens provided");
 
+      // Tự verify và tạo accessToken mới
       const user = await User.findOne({ refreshToken });
       if (!user || user.refreshTokenExpiry < Date.now()) {
-        return res.status(401).json({
-          message: "Invalid refresh token",
-          success: false,
-        });
+        return res.status(401).json({ message: "Invalid refresh token" });
       }
 
       accessToken = jwt.sign({ userId: user._id }, process.env.SECRET_KEY, {
         expiresIn: "15m",
       });
 
+      // Set lại cookie accessToken cho client nếu muốn
       res.cookie("accessToken", accessToken, {
         httpOnly: true,
         sameSite: "none",
@@ -34,18 +37,20 @@ export const isAuthenticated = async (req, res, next) => {
         maxAge: 15 * 60 * 1000,
       });
     }
+    // const decoded = await jwt.verify(token, process.env.SECRET_KEY);
+    // if (!decoded) {
+    //   return res.status(401).json({
+    //     message: "Invalid token",
+    //     success: false,
+    //   });
+    // }
+    // req.id = decoded.userId;
 
+    // Verify access token
     const decoded = jwt.verify(accessToken, process.env.SECRET_KEY);
     req.id = decoded.userId;
     next();
   } catch (error) {
-    if (error.name === "TokenExpiredError" || error.name === "JsonWebTokenError") {
-      return res.status(401).json({
-        message: "Invalid or expired token",
-        success: false,
-      });
-    }
-
     next(error);
   }
 };
