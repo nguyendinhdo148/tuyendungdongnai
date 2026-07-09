@@ -6,6 +6,16 @@ import cloudinary, { uploadToCloudinary } from "../utils/cloudinary.js";
 import getDataUri from "../utils/datauri.js";
 import { sendMail } from "../services/emailService.js";
 
+// Cấu hình Cookie dùng chung cho toàn bộ file
+const getCookieOptions = (maxAge) => ({
+  httpOnly: true,
+  secure: true,
+  sameSite: "lax", // Đã đổi sang lax vì cùng chung domain
+  domain: process.env.NODE_ENV === "production" ? ".tuyendungdongnai.com" : undefined, // Share cookie giữa www và api
+  path: "/",
+  maxAge: maxAge,
+});
+
 const generateTokens = (userId) => {
   const accessToken = jwt.sign({ userId }, process.env.SECRET_KEY, {
     expiresIn: "15m",
@@ -79,7 +89,7 @@ export const login = async (req, res, next) => {
         success: false,
       });
     }
-    // check role is correct or not
+    
     if (role !== user.role) {
       return res.status(400).json({
         message: "Account doesn't exist with current role.",
@@ -87,9 +97,6 @@ export const login = async (req, res, next) => {
       });
     }
 
-    // check if user is admin
-    // if user is admin, no need to check password
-    // if user is not admin, check password
     const isAdmin = user.role === "admin";
 
     if (!isAdmin) {
@@ -113,7 +120,6 @@ export const login = async (req, res, next) => {
 
     const { accessToken, refreshToken } = generateTokens(user._id);
 
-    // Lưu refresh token vào DB
     await User.findByIdAndUpdate(user._id, {
       refreshToken,
       refreshTokenExpiry: Date.now() + 7 * 24 * 60 * 60 * 1000,
@@ -121,20 +127,8 @@ export const login = async (req, res, next) => {
 
     return res
       .status(200)
-      .cookie("accessToken", accessToken, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
-        path: "/",
-        maxAge: 15 * 60 * 1000, // 15 phút
-      })
-      .cookie("refreshToken", refreshToken, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
-        path: "/",
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 ngày
-      })
+      .cookie("accessToken", accessToken, getCookieOptions(15 * 60 * 1000))
+      .cookie("refreshToken", refreshToken, getCookieOptions(7 * 24 * 60 * 60 * 1000))
       .json({
         message: `Welcome back ${user.fullname}`,
         user,
@@ -148,53 +142,44 @@ export const login = async (req, res, next) => {
 export const refreshToken = async (req, res) => {
   const { refreshToken } = req.cookies;
 
-  // Kiểm tra refresh token
   const user = await User.findOne({ refreshToken });
 
   if (!user || user.refreshTokenExpiry < Date.now()) {
     return res.status(401).json({ message: "Invalid refresh token" });
   }
 
-  // Tạo token mới
   const { accessToken, newRefreshToken } = generateTokens(user._id);
 
-  // Cập nhật refresh token mới
   await User.findByIdAndUpdate(user._id, {
     refreshToken: newRefreshToken,
     refreshTokenExpiry: Date.now() + 7 * 24 * 60 * 60 * 1000,
   });
 
   return res
-    .cookie("accessToken", accessToken)
-    .cookie("refreshToken", newRefreshToken)
+    .cookie("accessToken", accessToken, getCookieOptions(15 * 60 * 1000))
+    .cookie("refreshToken", newRefreshToken, getCookieOptions(7 * 24 * 60 * 60 * 1000))
     .json({ success: true });
 };
 
 export const logout = async (req, res, next) => {
   try {
-    // return res.status(200).cookie("token", "", { maxAge: 0 }).json({
-    //   message: "Logged out successfully.",
-    //   success: true,
-    // });
     await User.findByIdAndUpdate(req.id, {
       refreshToken: null,
       refreshTokenExpiry: null,
     });
 
-    // Xóa cookies
+    // Xóa cookies với tuỳ chọn tương tự lúc tạo
+    const clearOptions = {
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax",
+      domain: process.env.NODE_ENV === "production" ? ".tuyendungdongnai.com" : undefined,
+      path: "/",
+    };
+
     res
-      .clearCookie("accessToken", {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
-        path: "/", // rất quan trọng
-      })
-      .clearCookie("refreshToken", {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
-        path: "/",
-      });
+      .clearCookie("accessToken", clearOptions)
+      .clearCookie("refreshToken", clearOptions);
 
     return res.json({ success: true });
   } catch (error) {
@@ -206,7 +191,6 @@ export const updateProfile = async (req, res, next) => {
   try {
     const { fullname, email, phoneNumber, bio, skills } = req.body;
 
-    // cloudinary upload file
     let profileResume = null;
     let profileResumeOriginalName = null;
     if (req.file) {
@@ -234,7 +218,7 @@ export const updateProfile = async (req, res, next) => {
       skillsArray = skills.split(", ");
     }
 
-    const userId = req.id; // middleware authentication
+    const userId = req.id; 
 
     let user = await User.findById(userId);
 
@@ -245,16 +229,13 @@ export const updateProfile = async (req, res, next) => {
       });
     }
 
-    // update profile
     if (fullname) user.fullname = fullname;
     if (email) user.email = email;
     if (phoneNumber) user.phoneNumber = phoneNumber;
 
-    // allow update bio, skills can empty
     user.profile.bio = bio;
     user.profile.skills = skillsArray;
 
-    // delete old resume
     if (profileResume) {
       if (user.profile?.resume?.public_id) {
         await cloudinary.uploader.destroy(user.profile.resume.public_id);
@@ -286,7 +267,7 @@ export const updateProfile = async (req, res, next) => {
 
 export const updateAvatar = async (req, res, next) => {
   try {
-    const userId = req.id; // middleware authentication
+    const userId = req.id; 
 
     let user = await User.findById(userId);
 
@@ -297,7 +278,6 @@ export const updateAvatar = async (req, res, next) => {
       });
     }
 
-    // cloudinary upload file
     let profilePhotoUrl = null;
     if (req.file) {
       try {
@@ -318,12 +298,10 @@ export const updateAvatar = async (req, res, next) => {
       }
     }
 
-    // delete old avatar
     if (user.profile?.profilePhoto?.public_id) {
       await cloudinary.uploader.destroy(user.profile.profilePhoto.public_id);
     }
 
-    // update profile
     if (profilePhotoUrl) {
       user.profile.profilePhoto = profilePhotoUrl;
     }
@@ -368,20 +346,15 @@ export const forgotPassword = async (req, res, next) => {
       });
     }
 
-    // Generate reset token and expiry time
-    // Hash token to store in the database
-    // and send the plain token in the email
-    // so that user can use it to reset password
     const resetToken = crypto.randomBytes(32).toString("hex");
     user.resetToken = crypto
       .createHash("sha256")
       .update(resetToken)
       .digest("hex");
-    user.resetTokenExpiry = Date.now() + 10 * 60 * 1000; // 10 minutes
+    user.resetTokenExpiry = Date.now() + 10 * 60 * 1000; 
 
     await user.save();
 
-    // Create reset URL
     const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
 
     try {
@@ -546,7 +519,6 @@ export const resetPassword = async (req, res, next) => {
       });
     }
 
-    // Hash token
     const resetToken = crypto.createHash("sha256").update(token).digest("hex");
 
     const user = await User.findOne({
@@ -561,9 +533,6 @@ export const resetPassword = async (req, res, next) => {
       });
     }
 
-    // Hash new password
-    // update the user password
-    // clear the reset token and expiry from the database
     const hashedPassword = await bcrypt.hash(password, 10);
     user.password = hashedPassword;
     user.resetToken = undefined;

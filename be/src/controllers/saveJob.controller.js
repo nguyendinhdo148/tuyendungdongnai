@@ -29,15 +29,21 @@ export const unsaveJob = async (req, res, next) => {
 
 export const getSavedJobs = async (req, res, next) => {
   try {
-    const savedJobs = await SaveJob.find({ user: req.id }).populate({
-      path: "job",
-      populate: {
-        path: "company",
-        select: "name logo location",
-      },
-    });
+    const savedJobs = await SaveJob.find({ user: req.id })
+      .populate({
+        path: "job",
+        populate: {
+          path: "company",
+          select: "name logo location",
+        },
+      })
+      .sort({ createdAt: -1 });
+
+    // FIX: Lọc bỏ những bản ghi mà công việc gốc đã bị xóa (job = null)
+    const validSavedJobs = savedJobs.filter((item) => item.job !== null);
+
     res.status(200).json({
-      savedJobs,
+      savedJobs: validSavedJobs,
       success: true,
     });
   } catch (error) {

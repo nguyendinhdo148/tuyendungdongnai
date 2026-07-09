@@ -22,6 +22,7 @@ const SavedJobsTable = () => {
 
   const dispatch = useDispatch();
   const handleUnsaveJob = async (jobId: string) => {
+    if (!jobId) return;
     try {
       await axios.delete(`${API}/save-job/unsave/${jobId}`, {
         withCredentials: true,
@@ -50,15 +51,12 @@ const SavedJobsTable = () => {
   }, [dispatch]);
 
   useEffect(() => {
-    if (!user) {
-      return;
-    }
+    if (!user) return;
     fetchSavedJobs();
   }, [fetchSavedJobs, user]);
 
   return (
     <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-sm">
-      {/* Header section with gradient background */}
       <div className="bg-gradient-to-r from-emerald-900 to-green-500 p-8 rounded-t-lg relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-green-400 opacity-20 rounded-full -mr-20 -mt-20"></div>
         <div className="absolute top-20 right-10 w-32 h-32 bg-green-400 opacity-20 rounded-full"></div>
@@ -73,93 +71,93 @@ const SavedJobsTable = () => {
         </div>
       </div>
 
-      {/* Content section */}
       <div className="p-6">
         <h2 className="text-xl font-medium text-gray-800 mb-4">
           Danh sách{" "}
           <span className="text-green-600 font-semibold">
-            {jobsForUserIsSaved.length}
+            {jobsForUserIsSaved?.length || 0}
           </span>{" "}
           việc làm đã lưu
         </h2>
 
-        {/* Job listing */}
-        {jobsForUserIsSaved.length > 0 ? (
+        {jobsForUserIsSaved && jobsForUserIsSaved.length > 0 ? (
           <div className="grid grid-cols-1 gap-6">
-            {jobsForUserIsSaved.map((saveJob) => (
-              <div
-                key={saveJob._id}
-                className="bg-green-50 rounded-lg shadow-sm p-4 flex flex-col md:flex-row items-start gap-4"
-              >
-                {/* Logo công ty */}
-                <div className="size-20 rounded-md overflow-hidden flex items-center justify-center bg-white border border-gray-200">
-                  <img
-                    src={saveJob.job.company.logo}
-                    alt={saveJob.job.company.name}
-                    className="size-14 object-contain"
-                  />
-                </div>
+            {jobsForUserIsSaved.map((saveJob) => {
+              // Bỏ qua nếu job bị null từ backend trả về (đề phòng)
+              if (!saveJob?.job) return null;
 
-                {/* Nội dung công việc */}
-                <div className="flex-1">
-                  <h3 className="text-lg font-bold text-gray-800 mb-1">
-                    {saveJob.job.title}
-                  </h3>
-                  <div className="text-green-600 font-semibold mb-1">
-                    {saveJob.job.salary} Triệu
-                  </div>
-                  <div className="text-gray-700 mb-1 max-w-[240px] line-clamp-1">
-                    <CustomTooltip content={saveJob.job.company.name}>
-                      <span className="block">{saveJob.job.company.name}</span>
-                    </CustomTooltip>
-                  </div>
-                  <div className="text-gray-500 text-sm mb-1">
-                    Đã lưu:{" "}
-                    {dayjs(saveJob.createdAt).format("DD/MM/YYYY - HH:mm")}
+              return (
+                <div
+                  key={saveJob._id}
+                  className="bg-green-50 rounded-lg shadow-sm p-4 flex flex-col md:flex-row items-start gap-4"
+                >
+                  <div className="size-20 rounded-md overflow-hidden flex items-center justify-center bg-white border border-gray-200 shrink-0">
+                    <img
+                      src={saveJob.job?.company?.logo || "/default-logo.png"}
+                      alt={saveJob.job?.company?.name || "Company Logo"}
+                      className="size-14 object-contain"
+                    />
                   </div>
 
-                  <div className="flex items-center flex-wrap gap-2 text-sm mb-1">
-                    <span className="bg-gray-200 text-gray-700 px-3 py-1 rounded-md">
-                      <CustomTooltip content={saveJob.job.location}>
-                        <span className="truncate">
-                          {saveJob.job.company.location}
-                        </span>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-bold text-gray-800 mb-1">
+                      {saveJob.job?.title}
+                    </h3>
+                    <div className="text-green-600 font-semibold mb-1">
+                      {saveJob.job?.salary} Triệu
+                    </div>
+                    <div className="text-gray-700 mb-1 max-w-[240px] line-clamp-1">
+                      <CustomTooltip content={saveJob.job?.company?.name || "Tên công ty"}>
+                        <span className="block">{saveJob.job?.company?.name}</span>
                       </CustomTooltip>
-                    </span>
-                    <span className="text-gray-500">
-                      Cập nhật:{" "}
-                      {formatDistanceToNow(
-                        new Date(saveJob.job.updatedAt || new Date()),
-                        {
-                          addSuffix: true,
-                          locale: vi,
-                        }
-                      )}
-                    </span>
+                    </div>
+                    <div className="text-gray-500 text-sm mb-1">
+                      Đã lưu:{" "}
+                      {dayjs(saveJob?.createdAt).format("DD/MM/YYYY - HH:mm")}
+                    </div>
+
+                    <div className="flex items-center flex-wrap gap-2 text-sm mb-1">
+                      <span className="bg-gray-200 text-gray-700 px-3 py-1 rounded-md">
+                        <CustomTooltip content={saveJob.job?.company?.location || "Địa điểm"}>
+                          <span className="truncate block max-w-[150px]">
+                            {saveJob.job?.company?.location}
+                          </span>
+                        </CustomTooltip>
+                      </span>
+                      <span className="text-gray-500">
+                        Cập nhật:{" "}
+                        {formatDistanceToNow(
+                          new Date(saveJob.job?.updatedAt || new Date()),
+                          {
+                            addSuffix: true,
+                            locale: vi,
+                          }
+                        )}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-2 w-full md:w-auto self-end md:self-center shrink-0">
+                    <Link
+                      to={`/job/detail/${saveJob.job?.slug}`}
+                      className="w-full"
+                    >
+                      <Button className="w-full bg-green-500 hover:bg-green-600 text-white cursor-pointer transition-colors duration-200">
+                        Ứng tuyển
+                      </Button>
+                    </Link>
+                    <Button
+                      onClick={() => handleUnsaveJob(saveJob.job?._id)}
+                      variant="outline"
+                      className="w-full flex items-center justify-center cursor-pointer gap-1 text-gray-600 border-gray-300 hover:text-red-600 hover:border-red-400 transition-colors duration-200"
+                    >
+                      <Trash2 className="size-4" />
+                      Bỏ lưu
+                    </Button>
                   </div>
                 </div>
-
-                {/* Nút thao tác */}
-                <div className="flex flex-col gap-2 self-end md:self-center">
-                  <Link
-                    to={`/job/detail/${saveJob.job?.slug}`}
-                    className="flex-1"
-                  >
-                    <Button className="bg-green-500 hover:bg-green-600 text-white cursor-pointer transition-colors duration-200">
-                      Ứng tuyển
-                    </Button>
-                  </Link>
-                  <Button
-                    onClick={() => handleUnsaveJob(saveJob.job._id)}
-                    variant="outline"
-                    className="flex items-center cursor-pointer gap-1 text-gray-600 border-gray-300 hover:text-red-600 hover:border-red-400 transition-colors duration-200"
-                  >
-                    <Trash2 className="size-4" />
-                    Bỏ lưu
-                  </Button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div className="text-gray-600 text-center py-12">
@@ -177,7 +175,6 @@ const SavedJobsTable = () => {
               <Button
                 className="bg-green-600 text-white hover:bg-green-700 transition mt-4 cursor-pointer"
                 onClick={() => {
-                  // điều hướng về trang tìm việc
                   window.location.href = "/jobs";
                 }}
               >

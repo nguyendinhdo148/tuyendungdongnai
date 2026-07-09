@@ -3,51 +3,60 @@ import { User } from "../models/user.model.js";
 
 export const isAuthenticated = async (req, res, next) => {
   try {
-    // const token = req.cookies.token;
     let accessToken = req.cookies.accessToken;
-    /* if (!token) {
-      return res.status(401).json({
-        message: "You are not authenticated",
-        success: false,
-      });
-    }
-    */
+    let decoded;
 
-    // Nếu access token hết hạn, thử dùng refresh token
+    // 1. Nếu có accessToken, thử verify nó trước
+    if (accessToken) {
+      try {
+        decoded = jwt.verify(accessToken, process.env.SECRET_KEY);
+      } catch (err) {
+        // Nếu token hết hạn (TokenExpiredError) hoặc lỗi, set accessToken = null 
+        // để ép hệ thống chạy xuống bước kiểm tra Refresh Token bên dưới
+        accessToken = null;
+      }
+    }
+
+    // 2. Nếu không có accessToken (hoặc vừa bị phát hiện hết hạn ở trên)
     if (!accessToken) {
       const refreshToken = req.cookies.refreshToken;
-      if (!refreshToken) throw new Error("No tokens provided");
+      
+      if (!refreshToken) {
+        return res.status(401).json({
+          message: "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại.",
+          success: false,
+        });
+      }
 
       // Tự verify và tạo accessToken mới
       const user = await User.findOne({ refreshToken });
       if (!user || user.refreshTokenExpiry < Date.now()) {
-        return res.status(401).json({ message: "Invalid refresh token" });
+        return res.status(401).json({ 
+          message: "Refresh token không hợp lệ hoặc đã hết hạn",
+          success: false 
+        });
       }
 
+      // Ký lại accessToken mới
       accessToken = jwt.sign({ userId: user._id }, process.env.SECRET_KEY, {
         expiresIn: "15m",
       });
 
-      // Set lại cookie accessToken cho client nếu muốn
+      // Set lại cookie accessToken cho client với cấu hình Domain chuẩn
       res.cookie("accessToken", accessToken, {
         httpOnly: true,
-        sameSite: "none",
         secure: true,
+        sameSite: "lax",
+        domain: process.env.NODE_ENV === "production" ? ".tuyendungdongnai.com" : undefined,
         path: "/",
         maxAge: 15 * 60 * 1000,
       });
-    }
-    // const decoded = await jwt.verify(token, process.env.SECRET_KEY);
-    // if (!decoded) {
-    //   return res.status(401).json({
-    //     message: "Invalid token",
-    //     success: false,
-    //   });
-    // }
-    // req.id = decoded.userId;
 
-    // Verify access token
-    const decoded = jwt.verify(accessToken, process.env.SECRET_KEY);
+      // Lấy thông tin decoded từ token mới
+      decoded = jwt.verify(accessToken, process.env.SECRET_KEY);
+    }
+
+    // 3. Gắn id vào request và đi tiếp
     req.id = decoded.userId;
     next();
   } catch (error) {

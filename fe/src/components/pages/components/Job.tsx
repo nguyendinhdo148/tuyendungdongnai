@@ -1,10 +1,11 @@
+import React from "react"; // Đã thêm import React
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Bookmark, BookmarkCheck, MapPin } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
-import { vi } from "date-fns/locale"; // Dùng locale tiếng Việt nếu muốn
+import { vi } from "date-fns/locale";
 import type { Job } from "@/types/job";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
@@ -12,8 +13,8 @@ import toast from "react-hot-toast";
 
 interface JobProps {
   job: Job;
-  savedJobs: string[]; // Danh sách job đã lưu (jobId)
-  onJobSaveChange: (jobId: string, saved: boolean) => void; // Callback để cập nhật job saved
+  savedJobs: string[];
+  onJobSaveChange: (jobId: string, saved: boolean) => void;
 }
 
 const Job = ({ job, savedJobs, onJobSaveChange }: JobProps) => {
@@ -22,11 +23,20 @@ const Job = ({ job, savedJobs, onJobSaveChange }: JobProps) => {
 
   const navigate = useNavigate();
 
-  const handleSaveClick = () => {
+  // ĐÃ SỬA: Thêm event (e) và khai báo kiểu dữ liệu cho event
+  const handleSaveClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    // 1. Chặn các sự kiện nổi bọt trên mobile
+    e.preventDefault();
+    e.stopPropagation();
+
+    // 2. Kiểm tra đăng nhập và thêm "return"
     if (!user) {
-      navigate("/login");
       toast.error("Vui lòng đăng nhập để lưu công việc!");
+      navigate("/login");
+      return; // Dừng lại ở đây, không chạy hàm lưu bên dưới
     }
+    
+    // 3. Thực hiện lưu
     onJobSaveChange(job._id, !isSaved);
   };
 
