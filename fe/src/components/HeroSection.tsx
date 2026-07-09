@@ -38,7 +38,6 @@ const banners = [
 
 // Từ khóa SEO phổ biến (như trên các Group FB)
 const popularKeywords = [
- 
   "Việc làm Phường Bình Phước",
   "Hành chính nhân sự",
   "Kế toán",
@@ -59,6 +58,7 @@ const HeroSection = () => {
   
   // Slider State
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isHoveringSlider, setIsHoveringSlider] = useState(false); // State mới để dừng auto-play
 
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
@@ -74,76 +74,49 @@ const HeroSection = () => {
       .replace(/\s/g, "")
       .replace(/\./g, "");
 
+  // Đã refactor logic mapping để dễ mở rộng và quản lý hơn
   const inferFiltersFromQuery = (rawQuery: string) => {
+    const query = normalizeSearchText(rawQuery);
     const filters = {
       location: [] as string[],
       jobType: [] as string[],
       salary: [] as string[],
     };
-    const query = normalizeSearchText(rawQuery);
 
-    if (query.includes("binhphuoc") || query.includes("phuongbinhphuoc")) {
-      filters.location.push("Phường Bình Phước");
-    }
+    const keywordMap = [
+      { keys: ["binhphuoc", "phuongbinhphuoc"], type: "location", value: "Phường Bình Phước" },
+      { keys: ["parttime", "part-time"], type: "jobType", value: "Part-Time" },
+      { keys: ["hanhchinh", "nhansu", "nhânsu"], type: "jobType", value: "Hành chính nhân sự" },
+      { keys: ["ketoan", "kiemtoan"], type: "jobType", value: "Kế toán / Kiểm toán" },
+      { keys: ["congnhan", "sanxuat"], type: "jobType", value: "Công nhân sản xuất" },
+      { keys: ["it", "phanmem"], type: "jobType", value: "IT / Phần mềm" },
+      { keys: ["marketing"], type: "jobType", value: "Marketing" },
+      { keys: ["banhang", "kinhdoanh"], type: "jobType", value: "Bán hàng / Kinh doanh" },
+      { keys: ["fulltime", "toanthoigian"], type: "jobType", value: "Full-Time" },
+      { keys: ["remote", "tuxa"], type: "jobType", value: "Remote" },
+      { keys: ["thuctap", "intern"], type: "jobType", value: "Internship" },
+      { keys: ["thoa-thuan", "thoathuan"], type: "salary", value: "Thỏa thuận" },
+      { keys: ["duoi5", "duoi5trieu", "dưoi5"], type: "salary", value: "Dưới 5 triệu" },
+    ];
 
-    if (query.includes("parttime") || query.includes("part-time") || query.includes("parttime")) {
-      filters.jobType.push("Part-Time");
-    }
-
-    if (query.includes("hanhchinh") || query.includes("nhansu") || query.includes("nhânsu")) {
-      filters.jobType.push("Hành chính nhân sự");
-    }
-
-    if (query.includes("ketoan") || query.includes("kiemtoan")) {
-      filters.jobType.push("Kế toán / Kiểm toán");
-    }
-
-    if (query.includes("congnhan") || query.includes("sanxuat")) {
-      filters.jobType.push("Công nhân sản xuất");
-    }
-
-    if (query.includes("it") || query.includes("phanmem")) {
-      filters.jobType.push("IT / Phần mềm");
-    }
-
-    if (query.includes("marketing")) {
-      filters.jobType.push("Marketing");
-    }
-
-    if (query.includes("banhang") || query.includes("kinhdoanh")) {
-      filters.jobType.push("Bán hàng / Kinh doanh");
-    }
-
-    if (query.includes("fulltime") || query.includes("toanthoigian")) {
-      filters.jobType.push("Full-Time");
-    }
-
-    if (query.includes("remote") || query.includes("tuxa")) {
-      filters.jobType.push("Remote");
-    }
-
-    if (query.includes("thuctap") || query.includes("intern")) {
-      filters.jobType.push("Internship");
-    }
-
-    if (query.includes("thoa-thuan") || query.includes("thoathuan")) {
-      filters.salary.push("Thỏa thuận");
-    }
-
-    if (query.includes("duoi5") || query.includes("duoi5trieu") || query.includes("dưoi5")) {
-      filters.salary.push("Dưới 5 triệu");
-    }
+    keywordMap.forEach(({ keys, type, value }) => {
+      if (keys.some((k) => query.includes(k))) {
+        filters[type as keyof typeof filters].push(value);
+      }
+    });
 
     return filters;
   };
 
-  // Auto-play Slider
+  // Auto-play Slider - Đã thêm tính năng dừng khi hover
   useEffect(() => {
+    if (isHoveringSlider) return; // Dừng auto-play nếu đang hover
+
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % banners.length);
     }, 4000);
     return () => clearInterval(timer);
-  }, []);
+  }, [isHoveringSlider]);
 
   const searchJobHandler = async (selectedQuery?: string, keepQuery = true) => {
     const finalQuery = selectedQuery || query;
@@ -189,6 +162,9 @@ const HeroSection = () => {
   };
 
   useEffect(() => {
+    // Đã fix: Reset Index khi gõ text mới
+    setActiveSuggestionIndex(-1); 
+
     if (query.trim()) {
       const timeoutId = setTimeout(async () => {
         try {
@@ -208,7 +184,7 @@ const HeroSection = () => {
       setSuggestions([]);
       if (isInputFocused && user) {
         setShowSuggestions(true);
-        if (searchHistory.length === 0) fetchSearchHistory();
+        // Đã xóa gọi fetchSearchHistory() ở đây để tránh side-effect thừa
       } else {
         setShowSuggestions(false);
       }
@@ -218,7 +194,6 @@ const HeroSection = () => {
 
   const handleSelectSuggestion = (item: { title: string }) => {
     setQuery(item.title);
-    // suggestion click should trigger filters but not show keyword tag
     searchJobHandler(item.title, false);
   };
 
@@ -229,7 +204,6 @@ const HeroSection = () => {
 
   const handleKeywordClick = (keyword: string) => {
     setQuery(keyword);
-    // popular keyword buttons should infer filters but not persist as query tag
     searchJobHandler(keyword, false);
   };
 
@@ -429,8 +403,12 @@ const HeroSection = () => {
 
           </div>
 
-          {/* CỘT PHẢI: Banner Slider */}
-          <div className="lg:col-span-6 xl:col-span-7 relative order-1 lg:order-2 w-full h-[250px] sm:h-[350px] lg:h-[420px] rounded-3xl overflow-hidden shadow-2xl group">
+          {/* CỘT PHẢI: Banner Slider - Đã thêm sự kiện hover */}
+          <div 
+            className="lg:col-span-6 xl:col-span-7 relative order-1 lg:order-2 w-full h-[250px] sm:h-[350px] lg:h-[420px] rounded-3xl overflow-hidden shadow-2xl group"
+            onMouseEnter={() => setIsHoveringSlider(true)}
+            onMouseLeave={() => setIsHoveringSlider(false)}
+          >
             {banners.map((banner, index) => (
               <div
                 key={banner.id}
