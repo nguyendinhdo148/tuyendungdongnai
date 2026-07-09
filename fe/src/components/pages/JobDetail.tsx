@@ -9,6 +9,7 @@ import { setSingleJob } from "@/redux/jobSlice";
 import { RootState } from "@/redux/store";
 import { Avatar, AvatarImage } from "../ui/avatar";
 import { motion } from "framer-motion";
+import { Helmet } from "react-helmet-async"; // THÊM IMPORT HELMET
 import {
   CircleCheck,
   Dot,
@@ -52,7 +53,6 @@ const JobDetail = () => {
           withCredentials: true,
         });
         if (res.data.success) {
-          // console.log(res.data.job);
           dispatch(setSingleJob(res.data.job));
         }
       } catch (error) {
@@ -94,8 +94,44 @@ const JobDetail = () => {
     }
   };
 
+  // Cấu hình Schema Google Jobs (Chỉ render khi singleJob đã có data)
+  const jobSchema = singleJob ? {
+    "@context": "https://schema.org/",
+    "@type": "JobPosting",
+    "title": singleJob.title,
+    "description": singleJob.description,
+    "datePosted": singleJob.createdAt,
+    "employmentType": singleJob.jobType === "Full-Time" ? "FULL_TIME" : "PART_TIME",
+    "hiringOrganization": {
+      "@type": "Organization",
+      "name": singleJob.company?.name,
+      "logo": singleJob.company?.logo || "https://tuyendungdongnai.com/vj-logo.png"
+    },
+    "jobLocation": {
+      "@type": "Place",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": singleJob.location,
+        "addressRegion": "Bình Phước",
+        "addressCountry": "VN"
+      }
+    }
+  } : null;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      
+      {/* TỐI ƯU SEO */}
+      {singleJob && (
+        <Helmet>
+          <title>{`${singleJob.title} tại ${singleJob.company?.name} - Tuyển Dụng Đồng Nai`}</title>
+          <meta name="description" content={`Tuyển ${singleJob.title} làm việc tại ${singleJob.location}. Mức lương: ${singleJob.salary} triệu. Nhấn để xem chi tiết và ứng tuyển.`} />
+          <script type="application/ld+json">
+            {JSON.stringify(jobSchema)}
+          </script>
+        </Helmet>
+      )}
+
       <Navbar />
 
       <div className="max-w-6xl mx-auto px-6 py-8">
@@ -358,10 +394,10 @@ const JobDetail = () => {
                     <div>
                       <p className="font-medium text-gray-900">Website</p>
                       <a
-                        href={singleJob?.company.website}
+                        href={singleJob?.company?.website}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 font-medium"
+                        className="text-blue-600 hover:text-blue-800 font-medium break-all"
                       >
                         {singleJob?.company?.website
                           ? new URL(singleJob.company.website).hostname

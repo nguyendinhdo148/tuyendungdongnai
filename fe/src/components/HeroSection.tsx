@@ -1,9 +1,10 @@
 import { Search, Loader2, Sparkles, Clock, X, TrendingUp } from "lucide-react";
 import { Button } from "./ui/button";
 import { setSearchedQuery } from "@/redux/jobSlice";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom"; // Đã thêm Link để tối ưu SEO URL
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useRef, useState } from "react";
+import { Helmet } from "react-helmet-async"; // Sử dụng để inject Meta Data vào thẻ <head>
 import FullScreenLoader from "./skeletons/FullScreenLoader";
 import SuggestionList from "./helpers/SuggestionList";
 import axios from "axios";
@@ -58,7 +59,7 @@ const HeroSection = () => {
   
   // Slider State
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [isHoveringSlider, setIsHoveringSlider] = useState(false); // State mới để dừng auto-play
+  const [isHoveringSlider, setIsHoveringSlider] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
@@ -74,7 +75,6 @@ const HeroSection = () => {
       .replace(/\s/g, "")
       .replace(/\./g, "");
 
-  // Đã refactor logic mapping để dễ mở rộng và quản lý hơn
   const inferFiltersFromQuery = (rawQuery: string) => {
     const query = normalizeSearchText(rawQuery);
     const filters = {
@@ -108,9 +108,19 @@ const HeroSection = () => {
     return filters;
   };
 
-  // Auto-play Slider - Đã thêm tính năng dừng khi hover
+  // Hàm tạo URL tĩnh dựa trên từ khóa gợi ý để Bot Google có thể cào được link
+  const getKeywordLink = (keyword: string) => {
+    const inferredFilters = inferFiltersFromQuery(keyword);
+    const params = new URLSearchParams();
+    if (inferredFilters.location.length > 0) params.set("location", inferredFilters.location.join(","));
+    if (inferredFilters.jobType.length > 0) params.set("jobType", inferredFilters.jobType.join(","));
+    if (inferredFilters.salary.length > 0) params.set("salary", inferredFilters.salary.join(","));
+    return `/browse?${params.toString()}`;
+  };
+
+  // Auto-play Slider
   useEffect(() => {
-    if (isHoveringSlider) return; // Dừng auto-play nếu đang hover
+    if (isHoveringSlider) return;
 
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % banners.length);
@@ -162,7 +172,6 @@ const HeroSection = () => {
   };
 
   useEffect(() => {
-    // Đã fix: Reset Index khi gõ text mới
     setActiveSuggestionIndex(-1); 
 
     if (query.trim()) {
@@ -184,7 +193,6 @@ const HeroSection = () => {
       setSuggestions([]);
       if (isInputFocused && user) {
         setShowSuggestions(true);
-        // Đã xóa gọi fetchSearchHistory() ở đây để tránh side-effect thừa
       } else {
         setShowSuggestions(false);
       }
@@ -200,11 +208,6 @@ const HeroSection = () => {
   const handleSelectHistory = (historyQuery: string) => {
     setQuery(historyQuery);
     searchJobHandler(historyQuery);
-  };
-
-  const handleKeywordClick = (keyword: string) => {
-    setQuery(keyword);
-    searchJobHandler(keyword, false);
   };
 
   const handleDeleteHistory = async (e: React.MouseEvent, historyId: string) => {
@@ -253,6 +256,20 @@ const HeroSection = () => {
 
   return (
     <section className="relative bg-gradient-to-b from-blue-50/50 to-white py-10 lg:py-16">
+      
+      {/* TỐI ƯU SEO: Inject Header Metadata tự động cho trang chủ */}
+      <Helmet>
+        <title>Tuyển Dụng Đồng Nai - Tìm Việc Làm Tại Đồng Nai Mới Nhất</title>
+        <meta name="description" content="Kênh thông tin tuyển dụng uy tín số 1 tại Đồng Nai. Cập nhật liên tục việc làm hành chính, kế toán, tìm việc làm tại Đồng Xoài, Bình Phước, các khu công nghiệp và đa dạng ngành nghề khác." />
+        <meta name="keywords" content="tuyển dụng đồng nai, tìm việc làm đồng nai, việc làm đồng xoài, hành chính nhân sự đồng nai, việc làm kế toán đồng nai, việc làm khu công nghiệp" />
+        
+        {/* Open Graph cho Facebook / Zalo Share */}
+        <meta property="og:title" content="Tuyển Dụng Đồng Nai - Tìm Việc Làm Tại Đồng Nai Mới Nhất" />
+        <meta property="og:description" content="Kênh thông tin tuyển dụng uy tín tại Đồng Nai. Cập nhật liên tục việc làm hành chính, văn phòng, kế toán, công nhân..." />
+        <meta property="og:type" content="website" />
+        <meta property="og:image" content={banners[0].image} />
+      </Helmet>
+
       {isSearching && <FullScreenLoader />}
 
       <div className="container mx-auto max-w-7xl px-4 sm:px-6">
@@ -280,10 +297,13 @@ const HeroSection = () => {
               </h2>
             </div>
 
-            {/* Search Box Gọn Gàng */}
+            {/* Search Box */}
             <div className="relative w-full mt-2">
               <div className="relative bg-white rounded-2xl w-full shadow-lg border border-gray-200/80 focus-within:border-blue-500 transition-colors duration-300">
-                <div className="flex items-center p-1.5">
+                <form 
+                  onSubmit={(e) => { e.preventDefault(); searchJobHandler(); }} 
+                  className="flex items-center p-1.5"
+                >
                   <div className="flex-1 relative">
                     <input
                       ref={inputRef}
@@ -319,13 +339,13 @@ const HeroSection = () => {
                   </div>
 
                   <Button
-                    onClick={() => searchJobHandler()}
+                    type="submit"
                     className="h-10 w-10 sm:h-12 sm:w-12 ml-1 rounded-xl bg-blue-600 hover:bg-blue-700 shadow-md transition-all duration-300 border-0 flex-shrink-0"
                     disabled={isSearching || !query.trim()}
                   >
                     {isSearching ? <Loader2 className="w-5 h-5 text-white animate-spin" /> : <Search className="w-5 h-5 text-white" />}
                   </Button>
-                </div>
+                </form>
               </div>
 
               {/* Loading Indicator */}
@@ -382,7 +402,7 @@ const HeroSection = () => {
               )}
             </div>
 
-            {/* Từ khóa SEO / Gợi ý tìm kiếm nhanh */}
+            {/* TỐI ƯU SEO: Đã đổi button thành thẻ Link chuẩn SEO */}
             <div className="flex flex-col gap-2 mt-2">
               <div className="flex items-center gap-1.5 text-sm text-gray-500 font-medium">
                 <TrendingUp className="w-4 h-4 text-orange-500" />
@@ -390,20 +410,20 @@ const HeroSection = () => {
               </div>
               <div className="flex flex-wrap gap-2">
                 {popularKeywords.map((kw, i) => (
-                  <button
+                  <Link
                     key={i}
-                    onClick={() => handleKeywordClick(kw)}
-                    className="text-xs px-3 py-1.5 bg-white border border-gray-200 rounded-full text-gray-600 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50 transition-colors shadow-sm"
+                    to={getKeywordLink(kw)}
+                    className="text-xs px-3 py-1.5 bg-white border border-gray-200 rounded-full text-gray-600 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50 transition-colors shadow-sm inline-block"
                   >
                     {kw}
-                  </button>
+                  </Link>
                 ))}
               </div>
             </div>
 
           </div>
 
-          {/* CỘT PHẢI: Banner Slider - Đã thêm sự kiện hover */}
+          {/* CỘT PHẢI: Banner Slider */}
           <div 
             className="lg:col-span-6 xl:col-span-7 relative order-1 lg:order-2 w-full h-[250px] sm:h-[350px] lg:h-[420px] rounded-3xl overflow-hidden shadow-2xl group"
             onMouseEnter={() => setIsHoveringSlider(true)}
@@ -417,11 +437,15 @@ const HeroSection = () => {
                 }`}
               >
                 <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-gray-900/20 to-transparent z-10" />
+                
+                {/* TỐI ƯU SEO: Thêm thuộc tính Core Web Vitals lcp và Alt có nghĩa */}
                 <img
                   src={banner.image}
-                  alt={banner.title}
+                  alt={`${banner.title} - Kênh tuyển dụng uy tín Đồng Nai`}
                   className="w-full h-full object-cover scale-105 group-hover:scale-100 transition-transform duration-700"
+                  loading={index === 0 ? "eager" : "lazy"} // Ảnh đầu tiên load ưu tiên cao nhất, các ảnh sau lazy-load
                 />
+                
                 <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8 z-20">
                   <h3 className="text-xl sm:text-3xl font-bold text-white mb-2 translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
                     {banner.title}
@@ -439,7 +463,7 @@ const HeroSection = () => {
                   className={`h-1.5 rounded-full transition-all duration-300 ${
                     currentSlide === index ? "w-6 bg-blue-500" : "w-1.5 bg-white/50 hover:bg-white"
                   }`}
-                  aria-label={`Chuyển slide ${index + 1}`}
+                  aria-label={`Chuyển slide banner thứ ${index + 1}`}
                 />
               ))}
             </div>

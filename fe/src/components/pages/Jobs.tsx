@@ -13,6 +13,7 @@ import toast from "react-hot-toast";
 import { Filter, X } from "lucide-react";
 import { Button } from "../ui/button";
 import { motion, AnimatePresence } from "framer-motion";
+import { Helmet } from "react-helmet-async"; // THÊM IMPORT HELMET
 
 const Jobs = () => {
   const { user } = useSelector((store: RootState) => store.auth);
@@ -118,7 +119,6 @@ const Jobs = () => {
     updateURL(cleared);
   };
 
-  // Đếm số filter đang active
   const activeFilterCount = Object.values(filters).reduce(
     (acc, arr) => acc + arr.length,
     0
@@ -215,6 +215,12 @@ const Jobs = () => {
 
   return (
     <div>
+      {/* TỐI ƯU SEO TRANG DANH SÁCH */}
+      <Helmet>
+        <title>Tìm Việc Làm Tại Bình Phước & Đồng Nai - Cập Nhật Mới Nhất</title>
+        <meta name="description" content="Khám phá hàng ngàn cơ hội việc làm mới nhất, đa dạng ngành nghề với mức lương hấp dẫn tại Tuyển Dụng Đồng Nai. Lọc và tìm kiếm công việc phù hợp với bạn ngay!" />
+      </Helmet>
+
       <Navbar />
       <div className="pt-20 md:pt-24 max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
         <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
@@ -376,7 +382,6 @@ const Jobs = () => {
                   onFilterChange={handleFilterChange}
                   onResetFilters={() => {
                     resetFilters();
-                    // Không đóng filter khi reset, để user thấy đã xóa hết
                   }}
                   onSearchChange={(text) => {
                     setSearchText(text);

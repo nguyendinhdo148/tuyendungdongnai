@@ -6,15 +6,18 @@ import { BrowserRouter } from "react-router-dom";
 import { Provider } from "react-redux";
 import { store, persistor } from "./redux/store.ts";
 import { PersistGate } from "redux-persist/integration/react";
+import { HelmetProvider } from "react-helmet-async"; // 1. Import thư viện SEO
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <BrowserRouter>
-      <Provider store={store}>
-        <PersistGate loading={null} persistor={persistor}>
-          <App />
-        </PersistGate>
-      </Provider>
-    </BrowserRouter>
+    <HelmetProvider> {/* 2. Bọc Provider này ở tầng cao nhất */}
+      <BrowserRouter>
+        <Provider store={store}>
+          <PersistGate loading={null} persistor={persistor}>
+            <App />
+          </PersistGate>
+        </Provider>
+      </BrowserRouter>
+    </HelmetProvider>
   </StrictMode>
 );
