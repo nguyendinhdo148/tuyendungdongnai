@@ -26,27 +26,34 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-const allowedOrigins = [
-  "https://www.tuyendungdongnai.com", // Khi có www
-  "https://tuyendungdongnai.com",     // Khi không có www
-  "http://localhost:5173",            // Chạy dưới local của bạn
-  process.env.URL_CLIENT              // Giữ lại link cũ
-];
 
+// 1. CHỈNH SỬA allowedOrigins: Thêm trực tiếp link Vercel vào để chắc chắn không bị chặn
+const allowedOrigins = [
+  "https://www.tuyendungdongnai.com", 
+  "https://tuyendungdongnai.com",     
+  "http://localhost:5173",            
+  "https://tuyendungdongnai.vercel.app", // <-- Thêm domain này vào (không có dấu / ở cuối)
+  process.env.URL_CLIENT              
+].filter(Boolean); // Lọc bỏ giá trị undefined nếu URL_CLIENT không tồn tại
+
+// 2. CHỈNH SỬA corsOptions: Thêm methods và allowedHeaders
 const corsOptions = {
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes(origin + "/")) {
+    // Cho phép requests không có origin (ví dụ: mobile apps hoặc postman) và các origin trong mảng
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error("Not allowed by CORS"));
+      callback(new Error(`Origin ${origin} not allowed by CORS`)); // Báo lỗi rõ ràng hơn để dễ debug
     }
   },
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
 };
 
+// 3. Xoá bớt 1 dòng bị lặp (chỉ giữ 1 dòng)
 app.use(cors(corsOptions));
 
-app.use(cors(corsOptions));
 
 const PORT = process.env.PORT || 3000;
 
@@ -64,12 +71,14 @@ app.use("/api/v1/mbti", mbtiRoute);
 app.use("/api/v1/mi", miRoute);
 app.use("/api/v1/search-history", searchHistoryRoute);
 app.use("/api/v1/notification", notificationRoute);
+
 app.get('/', (req, res) => {
   res.json({
     status: "success",
     message: "Backend API is running successfully!"
   });
 });
+
 // error handler
 app.use((err, req, res, next) => {
   res.status(500).json({
