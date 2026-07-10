@@ -19,8 +19,8 @@ axios.interceptors.response.use(
     return response;
   },
   (error) => {
-    // Nếu Backend trả về lỗi 401 và có cờ isSessionExpired (bị đăng nhập ở nơi khác)
-    if (error.response && error.response.status === 401 && error.response.data.isSessionExpired) {
+    // SỬA LẠI ĐIỀU KIỆN: Chỉ cần Backend trả về lỗi 401 là tiến hành đá ra ngoài
+    if (error.response && error.response.status === 401) {
       const currentState = store.getState();
       
       // Kiểm tra nếu trong Redux đang lưu trạng thái đăng nhập
@@ -29,8 +29,7 @@ axios.interceptors.response.use(
         store.dispatch(setUser(null));
         
         // 2. Hiện thông báo cho người dùng
-        alert("Tài khoản của bạn đã được đăng nhập ở thiết bị khác. Vui lòng đăng nhập lại!"); 
-        // (Bạn có thể thay alert() bằng toast() nếu dự án đang dùng thư viện như sonner hay react-toastify)
+        alert("Phiên đăng nhập đã hết hạn hoặc tài khoản được đăng nhập ở nơi khác. Vui lòng đăng nhập lại!"); 
         
         // 3. Đá về trang login
         window.location.href = "/login";
