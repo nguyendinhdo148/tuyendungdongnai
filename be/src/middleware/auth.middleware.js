@@ -5,19 +5,31 @@ export const isAuthenticated = async (req, res, next) => {
   try {
     let accessToken = req.cookies.accessToken;
     let decoded;
+    let user;
 
     // 1. Nếu có accessToken, thử verify nó trước
     if (accessToken) {
       try {
         decoded = jwt.verify(accessToken, process.env.SECRET_KEY);
       } catch (err) {
-        // Nếu token hết hạn (TokenExpiredError) hoặc lỗi, set accessToken = null 
-        // để ép hệ thống chạy xuống bước kiểm tra Refresh Token bên dưới
+        // Hết hạn hoặc lỗi -> Xoá để chạy logic refresh bên dưới
         accessToken = null;
       }
     }
 
-    // 2. Nếu không có accessToken (hoặc vừa bị phát hiện hết hạn ở trên)
+    // NẾU accessToken HỢP LỆ -> Lấy user ra kiểm tra version token
+    if (accessToken && decoded) {
+      user = await User.findById(decoded.userId);
+      if (!user || user.tokenVersion !== decoded.tokenVersion) {
+        return res.status(401).json({
+          message: "Tài khoản của bạn đã được đăng nhập ở thiết bị khác.",
+          success: false,
+          isSessionExpired: true 
+        });
+      }
+    }
+
+    // 2. Nếu không có accessToken (hoặc vừa bị phát hiện hết hạn)
     if (!accessToken) {
       const refreshToken = req.cookies.refreshToken;
       
@@ -28,8 +40,8 @@ export const isAuthenticated = async (req, res, next) => {
         });
       }
 
-      // Tự verify và tạo accessToken mới
-      const user = await User.findOne({ refreshToken });
+      // Tự verify refreshToken 
+      user = await User.findOne({ refreshToken });
       if (!user || user.refreshTokenExpiry < Date.now()) {
         return res.status(401).json({ 
           message: "Refresh token không hợp lệ hoặc đã hết hạn",
@@ -37,20 +49,39 @@ export const isAuthenticated = async (req, res, next) => {
         });
       }
 
+      // Giải mã xem refreshToken có đúng version không (Tránh lấy token cũ refresh lại)
+      try {
+        const decodedRefresh = jwt.verify(refreshToken, process.env.REFRESH_SECRET_KEY);
+        if (decodedRefresh.tokenVersion !== user.tokenVersion) {
+          return res.status(401).json({
+            message: "Tài khoản của bạn đã được đăng nhập ở thiết bị khác.",
+            success: false,
+            isSessionExpired: true
+          });
+        }
+      } catch (err) {
+         return res.status(401).json({ 
+          message: "Refresh token không hợp lệ hoặc đã hết hạn",
+          success: false 
+        });
+      }
+
       // Ký lại accessToken mới
-      accessToken = jwt.sign({ userId: user._id }, process.env.SECRET_KEY, {
-        expiresIn: "15m",
-      });
+      accessToken = jwt.sign(
+        { userId: user._id, tokenVersion: user.tokenVersion }, 
+        process.env.SECRET_KEY, 
+        { expiresIn: "15m" }
+      );
 
       // Set lại cookie accessToken cho client với cấu hình Domain chuẩn
       res.cookie("accessToken", accessToken, {
-  httpOnly: true,
-  secure: true,
-  sameSite: "none", 
-  domain: process.env.NODE_ENV === "production" ? ".tuyendungdongnai.com" : undefined,
-  path: "/",
-  maxAge: 15 * 60 * 1000,
-});
+        httpOnly: true,
+        secure: true,
+        sameSite: "none", 
+        domain: process.env.NODE_ENV === "production" ? ".tuyendungdongnai.com" : undefined,
+        path: "/",
+        maxAge: 15 * 60 * 1000,
+      });
 
       // Lấy thông tin decoded từ token mới
       decoded = jwt.verify(accessToken, process.env.SECRET_KEY);

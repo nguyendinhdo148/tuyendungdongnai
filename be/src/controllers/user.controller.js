@@ -10,18 +10,19 @@ import { sendMail } from "../services/emailService.js";
 const getCookieOptions = (maxAge) => ({
   httpOnly: true,
   secure: true,
-  sameSite: "none", // Đổi thành "none" để các POST request trên Mobile không bị chặn
+  sameSite: "none", 
   domain: process.env.NODE_ENV === "production" ? ".tuyendungdongnai.com" : undefined,
   path: "/",
   maxAge: maxAge, 
 });
 
-const generateTokens = (userId) => {
-  const accessToken = jwt.sign({ userId }, process.env.SECRET_KEY, {
+// THÊM tokenVersion VÀO HÀM TẠO TOKEN
+const generateTokens = (userId, tokenVersion) => {
+  const accessToken = jwt.sign({ userId, tokenVersion }, process.env.SECRET_KEY, {
     expiresIn: "15m",
   });
 
-  const refreshToken = jwt.sign({ userId }, process.env.REFRESH_SECRET_KEY, {
+  const refreshToken = jwt.sign({ userId, tokenVersion }, process.env.REFRESH_SECRET_KEY, {
     expiresIn: "7d",
   });
 
@@ -75,13 +76,15 @@ export const login = async (req, res, next) => {
         success: false,
       });
     }
-    let user = await User.findOne({ email });
+
+    const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({
         message: "Incorrect email or password.",
         success: false,
       });
     }
+
     const isPasswordMatch = await bcrypt.compare(password, user.password);
     if (!isPasswordMatch) {
       return res.status(400).json({
@@ -97,19 +100,10 @@ export const login = async (req, res, next) => {
       });
     }
 
-    const isAdmin = user.role === "admin";
+    // 1. TĂNG VERSION LÊN 1 KHI ĐĂNG NHẬP MỚI
+    const currentTokenVersion = (user.tokenVersion || 0) + 1;
 
-    if (!isAdmin) {
-      const isPasswordMatch = await bcrypt.compare(password, user.password);
-      if (!isPasswordMatch) {
-        return res.status(400).json({
-          message: "Email hoặc mật khẩu không đúng",
-          success: false,
-        });
-      }
-    }
-
-    user = {
+    const userData = {
       _id: user._id,
       fullname: user.fullname,
       email: user.email,
@@ -118,11 +112,14 @@ export const login = async (req, res, next) => {
       profile: user.profile,
     };
 
-    const { accessToken, refreshToken } = generateTokens(user._id);
+    // 2. Truyền tokenVersion vào hàm generateTokens
+    const { accessToken, refreshToken } = generateTokens(user._id, currentTokenVersion);
 
+    // 3. Cập nhật tokenVersion và refreshToken mới vào Database
     await User.findByIdAndUpdate(user._id, {
       refreshToken,
       refreshTokenExpiry: Date.now() + 7 * 24 * 60 * 60 * 1000,
+      tokenVersion: currentTokenVersion, 
     });
 
     return res
@@ -131,7 +128,7 @@ export const login = async (req, res, next) => {
       .cookie("refreshToken", refreshToken, getCookieOptions(7 * 24 * 60 * 60 * 1000))
       .json({
         message: `Welcome back ${user.fullname}`,
-        user,
+        user: userData,
         success: true,
       });
   } catch (error) {
@@ -148,7 +145,22 @@ export const refreshToken = async (req, res) => {
     return res.status(401).json({ message: "Invalid refresh token" });
   }
 
-  const { accessToken, newRefreshToken } = generateTokens(user._id);
+  // Chặn đổi token nếu tài khoản đã đăng nhập ở thiết bị khác
+  try {
+    const decodedRefresh = jwt.verify(refreshToken, process.env.REFRESH_SECRET_KEY);
+    if (decodedRefresh.tokenVersion !== user.tokenVersion) {
+      return res.status(401).json({ 
+        message: "Tài khoản của bạn đã được đăng nhập ở thiết bị khác.",
+        success: false,
+        isSessionExpired: true
+      });
+    }
+  } catch (err) {
+    return res.status(401).json({ message: "Invalid refresh token" });
+  }
+
+  // Vẫn truyền tokenVersion cũ của user vào để tạo token mới
+  const { accessToken, newRefreshToken } = generateTokens(user._id, user.tokenVersion);
 
   await User.findByIdAndUpdate(user._id, {
     refreshToken: newRefreshToken,
@@ -168,11 +180,10 @@ export const logout = async (req, res, next) => {
       refreshTokenExpiry: null,
     });
 
-    // Xóa cookies với tuỳ chọn tương tự lúc tạo
     const clearOptions = {
       httpOnly: true,
       secure: true,
-      sameSite: "none", // Đồng bộ thành "none" ở đây
+      sameSite: "none", 
       domain: process.env.NODE_ENV === "production" ? ".tuyendungdongnai.com" : undefined,
       path: "/",
     };

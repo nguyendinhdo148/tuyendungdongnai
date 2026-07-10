@@ -1,6 +1,6 @@
 import Navbar from "../shared/Navbar";
 import Job from "./components/Job";
-import FilterCard from "./components/FilterCard"; // Nhớ import FilterCard
+import FilterCard from "./components/FilterCard";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { setAllJobs, setSearchedQuery } from "@/redux/jobSlice";
@@ -8,7 +8,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { API } from "@/utils/constant";
-import { Search, Filter,  ChevronDown, X } from "lucide-react";
+import { Search, Filter, ChevronDown, X } from "lucide-react";
 
 const Browse = () => {
   const { user } = useSelector((store: RootState) => store.auth);
@@ -19,7 +19,7 @@ const Browse = () => {
   const [savedJobs, setSavedJobs] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [sortBy, setSortBy] = useState("newest");
-  const [showFilters, setShowFilters] = useState(false); // Mobile toggle
+  const [showFilters, setShowFilters] = useState(false);
 
   // State quản lý bộ lọc từ FilterCard
   const [filters, setFilters] = useState<{
@@ -84,15 +84,28 @@ const Browse = () => {
   // Đọc từ khóa (query) và bộ lọc từ URL
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
-    const query = queryParams.get("query") || "";
-    dispatch(setSearchedQuery(query));
+    
+    const queryParam = queryParams.get("query");
+    const jobTypeParam = queryParams.get("jobType");
+    const locationParam = queryParams.get("location");
+    const salaryParam = queryParams.get("salary");
 
-    setFilters({
-      location: queryParams.get("location")?.split(",").filter(Boolean) || [],
-      jobType: queryParams.get("jobType")?.split(",").filter(Boolean) || [],
-      salary: queryParams.get("salary")?.split(",").filter(Boolean) || [],
-    });
-  }, [location.search, dispatch]);
+    // Nếu có tham số trên URL, cập nhật vào state tương ứng
+    if (queryParam !== null) {
+      dispatch(setSearchedQuery(queryParam));
+    }
+
+    if (jobTypeParam || locationParam || salaryParam) {
+      setFilters((prev) => ({
+        location: locationParam ? locationParam.split(",").filter(Boolean) : prev.location,
+        jobType: jobTypeParam ? jobTypeParam.split(",").filter(Boolean) : prev.jobType,
+        salary: salaryParam ? salaryParam.split(",").filter(Boolean) : prev.salary,
+      }));
+
+      // Thay thế URL sạch sẽ (xóa tham số) để các thao tác click checkbox sau này không bị lỗi
+      navigate("/browse", { replace: true });
+    }
+  }, [location.search, dispatch, navigate]);
 
   const { allJobs, searchedQuery } = useSelector(
     (store: RootState) => store.job
@@ -134,12 +147,12 @@ const Browse = () => {
     return 0;
   };
 
-  // LOGIC LỌC TỔNG HỢP (Kết hợp URL Query + FilterCard + TextSearch FilterCard)
+  // LOGIC LỌC TỔNG HỢP
   const filteredJobs = allJobs.filter((job) => {
     const isActive = job.status === "active" && job.approval === "approved";
     if (!isActive) return false;
 
-    // 1. Lọc theo URL Query (searchedQuery)
+    // 1. Lọc theo URL Query
     const keyword = searchedQuery.toLowerCase();
     const matchQuery =
       !keyword ||
@@ -210,7 +223,6 @@ const Browse = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-blue-50/50">
       <Navbar />
 
-      {/* Header Result */}
       <div className="bg-white border-b border-gray-100 shadow-sm sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -230,7 +242,6 @@ const Browse = () => {
             </div>
 
             <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto overflow-x-auto pb-2 sm:pb-0">
-              {/* View Toggle */}
               <div className="hidden sm:flex items-center bg-gray-100 rounded-lg p-1">
                 <button
                   onClick={() => setViewMode("grid")}
@@ -250,7 +261,6 @@ const Browse = () => {
                 </button>
               </div>
 
-              {/* Sort */}
               <div className="relative flex-1 sm:flex-none">
                 <select
                   value={sortBy}
@@ -264,7 +274,6 @@ const Browse = () => {
                 <ChevronDown className="absolute right-2.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
               </div>
 
-              {/* Mobile Filter Btn */}
               <button
                 onClick={() => setShowFilters(true)}
                 className="lg:hidden flex items-center gap-2 px-3 py-2 bg-blue-50 text-blue-600 border border-blue-100 rounded-lg text-sm font-medium whitespace-nowrap"
@@ -273,10 +282,8 @@ const Browse = () => {
                 Bộ lọc
               </button>
             </div>
-
           </div>
 
-          {/* Current Search Tag */}
           {searchedQuery && (
             <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-100">
               <span className="text-sm text-gray-500">Từ khóa:</span>
@@ -295,24 +302,19 @@ const Browse = () => {
         </div>
       </div>
 
-      {/* Main Layout 2 Columns */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
           
-          {/* Cột Trái: Bộ Lọc (Hiển thị dạng sidebar trên Desktop, Offcanvas trên Mobile) */}
           <div className={`
             fixed inset-0 z-50 lg:static lg:z-0 lg:block lg:w-[280px] flex-shrink-0
             ${showFilters ? "block" : "hidden"}
           `}>
-            {/* Overlay mobile */}
             <div 
               className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm lg:hidden"
               onClick={() => setShowFilters(false)}
             />
             
-            {/* Filter Content */}
             <div className="absolute inset-y-0 right-0 w-[85%] max-w-sm bg-white lg:static lg:w-full lg:bg-transparent overflow-y-auto lg:overflow-visible h-full shadow-2xl lg:shadow-none transition-transform duration-300">
-              {/* Nút đóng trên Mobile */}
               <div className="flex justify-between items-center p-4 border-b lg:hidden">
                 <h2 className="font-bold text-lg">Bộ lọc</h2>
                 <button onClick={() => setShowFilters(false)} className="p-2 hover:bg-gray-100 rounded-full">
@@ -331,7 +333,6 @@ const Browse = () => {
             </div>
           </div>
 
-          {/* Cột Phải: Danh sách Job (Chiếm phần còn lại) */}
           <div className="flex-1 min-w-0">
             {filteredJobs.length === 0 ? (
               <div className="text-center py-20 bg-white rounded-2xl border border-gray-100 shadow-sm">

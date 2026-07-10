@@ -23,8 +23,6 @@ import {
   Briefcase,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
-import { setSearchedQuery } from "@/redux/jobSlice";
 
 // Dữ liệu ngành nghề chuẩn theo thị trường Đồng Nai / Bình Phước
 const category = [
@@ -115,7 +113,6 @@ const CategoryCarousel = () => {
   const [, setIsAutoPlaying] = useState(true);
 
   const navigate = useNavigate();
-  const dispatch = useDispatch();
 
   const startAutoplay = useCallback(() => {
     stopAutoplay();
@@ -156,10 +153,10 @@ const CategoryCarousel = () => {
 
   const handleCategoryClick = (categoryName: string) => {
     setSelectedCategory(categoryName);
-    dispatch(setSearchedQuery(categoryName));
     
     setTimeout(() => {
-      navigate(`/browse?query=${encodeURIComponent(categoryName)}`);
+      // Đã sửa 'query' thành 'jobType' để khớp với bộ lọc ngành nghề
+      navigate(`/browse?jobType=${encodeURIComponent(categoryName)}`);
       setSelectedCategory(null);
     }, 300);
   };
@@ -190,7 +187,6 @@ const CategoryCarousel = () => {
         onMouseEnter={stopAutoplay}
         onMouseLeave={startAutoplay}
       >
-        {/* Header Section - Smaller */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-full px-3 py-1.5 mb-4 shadow-sm">
             <Briefcase size={14} className="text-blue-600" />
@@ -237,7 +233,6 @@ const CategoryCarousel = () => {
                       }
                     `}
                   >
-                    {/* Gradient Background */}
                     <div
                       className={`
                       absolute inset-0 bg-gradient-to-br ${cate.color} 
@@ -246,7 +241,6 @@ const CategoryCarousel = () => {
                     `}
                     ></div>
 
-                    {/* Demand Badge - Smaller */}
                     <div className="absolute top-3 right-3">
                       <div
                         className={`
@@ -259,10 +253,8 @@ const CategoryCarousel = () => {
                       </div>
                     </div>
 
-                    {/* Main Content - Smaller */}
                     <div className="relative p-4 sm:p-5 h-full flex flex-col justify-between">
                       <div className="space-y-3">
-                        {/* Icon - Smaller */}
                         <div
                           className={`
                           inline-flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 
@@ -277,7 +269,6 @@ const CategoryCarousel = () => {
                           />
                         </div>
 
-                        {/* Title & Description - Smaller */}
                         <div>
                           <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-0.5 group-hover:text-blue-700 transition-colors">
                             {cate.name}
@@ -288,7 +279,6 @@ const CategoryCarousel = () => {
                         </div>
                       </div>
 
-                      {/* Action Area - Smaller */}
                       <div className="flex items-center justify-between mt-2">
                         <div className="text-[10px] text-gray-400 font-medium group-hover:text-transparent transition-colors">
                           Click để xem việc làm
@@ -305,7 +295,6 @@ const CategoryCarousel = () => {
                       </div>
                     </div>
 
-                    {/* Shine Effect */}
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-0 group-hover:opacity-100 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-all duration-1000"></div>
                   </div>
                 </div>
@@ -313,7 +302,6 @@ const CategoryCarousel = () => {
             ))}
           </CarouselContent>
 
-          {/* Navigation - Smaller */}
           <CarouselPrevious
             className="
             hidden sm:flex -left-3 md:-left-8 w-10 h-10 md:w-11 md:h-11 
@@ -334,7 +322,6 @@ const CategoryCarousel = () => {
           />
         </Carousel>
 
-        {/* Progress Indicators - Smaller */}
         <div className="flex justify-center mt-6 space-x-2">
           {Array.from({
             length: Math.min(6, Math.ceil(category.length / 2)),
