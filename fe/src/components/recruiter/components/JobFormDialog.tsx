@@ -29,7 +29,7 @@ export interface JobFormData {
   title: string;
   description: string;
   requirements: string[];
-  salary: number | "";
+  salary: string; // Chuyển từ number | "" sang string để cho phép nhập text
   benefits: string[];
   location: string;
   jobType: string;
@@ -55,11 +55,11 @@ const initialFormData: JobFormData = {
   description: "",
   requirements: [],
   benefits: [],
-  salary: "", // Sửa thành rỗng
+  salary: "", 
   location: "",
   jobType: "",
-  experienceLevel: "", // Sửa thành rỗng
-  position: "", // Sửa thành rỗng
+  experienceLevel: "", 
+  position: "", 
   category: "",
   company: {
     _id: "",
@@ -114,7 +114,7 @@ export const JobFormDialog = ({
         description: job.description,
         requirements: job.requirements,
         benefits: job.benefits,
-        salary: Number(job.salary) || "",
+        salary: job.salary ? String(job.salary) : "", // Ép kiểu về chuỗi khi edit
         location: job.location,
         jobType: job.jobType,
         experienceLevel: job.experienceLevel !== undefined && job.experienceLevel !== null ? job.experienceLevel : "",
@@ -160,11 +160,12 @@ export const JobFormDialog = ({
       return;
     }
     
-    // Check validation các trường số
-    if (formData.salary === "" || Number(formData.salary) <= 0) {
-      toast.error("Vui lòng nhập mức lương hợp lệ lớn hơn 0");
+    // Validate text cho mức lương
+    if (!formData.salary.trim()) {
+      toast.error("Vui lòng nhập mức lương");
       return;
     }
+    
     if (formData.experienceLevel === "" || Number(formData.experienceLevel) < 0) {
       toast.error("Vui lòng nhập số năm kinh nghiệm hợp lệ");
       return;
@@ -179,7 +180,7 @@ export const JobFormDialog = ({
     try {
       await onSuccess({
         ...formData,
-        salary: Number(formData.salary),
+        salary: formData.salary.trim(), // Giữ nguyên chuỗi
         requirements: formData.requirements,
         benefits: formData.benefits,
         experienceLevel: Number(formData.experienceLevel),
@@ -516,16 +517,15 @@ export const JobFormDialog = ({
                 </Label>
                 <Input
                   id="salary"
-                  type="number"
-                  min="1"
+                  type="text" // Chuyển từ number thành text
                   value={formData.salary}
                   onChange={(e) =>
                     setFormData({
                       ...formData,
-                      salary: e.target.value === "" ? "" : Number(e.target.value),
+                      salary: e.target.value,
                     })
                   }
-                  placeholder="VD: 15"
+                  placeholder="VD: 7,5 hoặc Thương lượng"
                   className="resize-none focus:ring-indigo-500 invalid:[&:not(:placeholder-shown):not(:focus)]:border-red-500"
                   required
                 />

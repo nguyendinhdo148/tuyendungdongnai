@@ -1,6 +1,7 @@
 import { Application } from "../models/application.model.js";
 import { Job } from "../models/job.model.js";
-import { sendMail } from "../services/emailService.js";
+import { User } from "../models/user.model.js"; // THÊM IMPORT USER
+import { sendMail, sendApplicationNotificationEmail } from "../services/emailService.js"; // CẬP NHẬT IMPORT
 import { buildEmailTemplate } from "../services/template.js";
 
 // for student
@@ -28,14 +29,18 @@ export const applyJob = async (req, res, next) => {
       });
     }
 
-    // check if the jobs exists
-    const job = await Job.findById(jobId);
+    // check if the jobs exists và lấy thêm thông tin người tạo (recruiter)
+    const job = await Job.findById(jobId).populate("created_by");
     if (!job) {
       return res.status(404).json({
         message: "Job not found",
         success: false,
       });
     }
+
+    // Lấy thông tin ứng viên để gửi email
+    const candidate = await User.findById(userId);
+
     // create a new application
     const newApplication = await Application.create({
       job: jobId,
@@ -44,6 +49,29 @@ export const applyJob = async (req, res, next) => {
 
     job.applications.push(newApplication._id);
     await job.save();
+
+    // ---------------------------------------------------------
+    // GỬI EMAIL THÔNG BÁO CHO NHÀ TUYỂN DỤNG (Chạy ngầm)
+    // ---------------------------------------------------------
+    try {
+      if (job.created_by && candidate) {
+        const recruiter = job.created_by;
+        // Sử dụng biến môi trường URL_CLIENT của bạn
+        const jobManageUrl = `${process.env.URL_CLIENT}/recruiter/jobs/${jobId}/applicants`; 
+
+        sendApplicationNotificationEmail({
+          recruiterEmail: recruiter.email,
+          recruiterName: recruiter.fullname,
+          candidateName: candidate.fullname,
+          candidateEmail: candidate.email,
+          jobTitle: job.title,
+          jobUrl: jobManageUrl
+        }).catch(err => console.error("Lỗi gửi email ngầm:", err));
+      }
+    } catch (emailError) {
+      console.error("Lỗi khối xử lý email thông báo apply:", emailError);
+    }
+    // ---------------------------------------------------------
 
     return res.status(201).json({
       message: "Job applied successfully.",
@@ -263,18 +291,6 @@ export const updateApplicationStatus = async (req, res, next) => {
         replyTo: emailRecruiter,
       });
     }
-
-    // delete application after 1 minute
-    // if (status.toLowerCase() === "rejected") {
-    //   setTimeout(async () => {
-    //     try {
-    //       await Application.findByIdAndDelete(applicationId);
-    //       console.log(`Application ${applicationId} deleted after 1 minute.`);
-    //     } catch (err) {
-    //       console.error(`Failed to delete application ${applicationId}:`, err);
-    //     }
-    //   }, 1 * 60 * 1000);
-    // }
 
     return res.status(200).json({
       message: "Application status updated.",

@@ -13,7 +13,7 @@ import toast from "react-hot-toast";
 import { Filter, X } from "lucide-react";
 import { Button } from "../ui/button";
 import { motion, AnimatePresence } from "framer-motion";
-import { Helmet } from "react-helmet-async"; // THÊM IMPORT HELMET
+import { Helmet } from "react-helmet-async"; 
 
 const Jobs = () => {
   const { user } = useSelector((store: RootState) => store.auth);
@@ -213,12 +213,33 @@ const Jobs = () => {
     );
   });
 
+  // --- LOGIC XỬ LÝ DYNAMIC SEO BẮT ĐẦU TẠI ĐÂY ---
+  const activeLocations = filters.location.join(", ");
+  const activeQuery = searchText;
+
+  let seoTitle = "Tìm Việc Làm Tại Đồng Xoài, Bình Phước Mới Nhất | Tuyển Dụng Đồng Nai";
+  let seoDescription = "Hàng ngàn cơ hội việc làm, tuyển dụng nhân sự tại Đồng Xoài, Chơn Thành và các KCN lân cận. Thu nhập hấp dẫn, đa dạng ngành nghề. Ứng tuyển ngay!";
+
+  if (activeQuery && activeLocations) {
+    seoTitle = `Tuyển dụng ${activeQuery} tại ${activeLocations} | Tuyển Dụng Đồng Nai`;
+    seoDescription = `Hàng trăm cơ hội việc làm ${activeQuery} tại ${activeLocations}. Mức lương cao, chế độ đãi ngộ tốt. Cập nhật mới nhất trên Tuyển Dụng Đồng Nai.`;
+  } else if (activeQuery) {
+    seoTitle = `Tuyển dụng ${activeQuery} tại Bình Phước, Đồng Nai | Tuyển Dụng Đồng Nai`;
+    seoDescription = `Tìm việc làm ${activeQuery} lương cao tại khu vực Bình Phước, Đồng Nai. Nộp CV trực tuyến, phỏng vấn ngay hôm nay!`;
+  } else if (activeLocations) {
+    seoTitle = `Việc Làm Tại ${activeLocations} Mới Nhất | Tuyển Dụng Đồng Nai`;
+    seoDescription = `Danh sách việc làm mới nhất tại ${activeLocations}. Đa dạng ngành nghề, phù hợp với mọi trình độ. Ứng tuyển ngay trên Tuyển Dụng Đồng Nai.`;
+  }
+  // --- KẾT THÚC LOGIC DYNAMIC SEO ---
+
   return (
     <div>
-      {/* TỐI ƯU SEO TRANG DANH SÁCH */}
+      {/* TỐI ƯU SEO TRANG DANH SÁCH BẰNG HELMET */}
       <Helmet>
-        <title>Tìm Việc Làm Tại Bình Phước & Đồng Nai - Cập Nhật Mới Nhất</title>
-        <meta name="description" content="Khám phá hàng ngàn cơ hội việc làm mới nhất, đa dạng ngành nghề với mức lương hấp dẫn tại Tuyển Dụng Đồng Nai. Lọc và tìm kiếm công việc phù hợp với bạn ngay!" />
+        <title>{seoTitle}</title>
+        <meta name="description" content={seoDescription} />
+        <meta property="og:title" content={seoTitle} />
+        <meta property="og:description" content={seoDescription} />
       </Helmet>
 
       <Navbar />

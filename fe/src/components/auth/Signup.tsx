@@ -55,6 +55,33 @@ const Signup = () => {
     }
   }, [user, navigate]);
 
+  // TỐI ƯU SEO ON-PAGE CHO TRANG ĐĂNG KÝ (LOCAL SEO BÌNH PHƯỚC/ĐỒNG XOÀI)
+  useEffect(() => {
+    // 1. Cập nhật Title chuẩn SEO
+    document.title = "Đăng ký tài khoản Việc làm | Tuyển Dụng Đồng Nai - Trọng điểm Bình Phước";
+
+    // 2. Cập nhật Meta Description 
+    const descriptionContent = "Tạo ngay tài khoản để kết nối với hàng trăm doanh nghiệp tại khu vực Đồng Xoài, Chơn Thành và các KCN lân cận. Kênh tuyển dụng uy tín, cập nhật mới nhất mỗi ngày.";
+    
+    let metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) {
+      metaDescription.setAttribute("content", descriptionContent);
+    } else {
+      metaDescription = document.createElement('meta');
+      metaDescription.setAttribute('name', 'description');
+      metaDescription.setAttribute('content', descriptionContent);
+      document.head.appendChild(metaDescription);
+    }
+
+    // 3. Cleanup khi rời trang (tránh lưu Title/Description cũ sang trang khác nếu hệ thống không tự override)
+    return () => {
+      document.title = "Tuyển Dụng Đồng Nai - Tìm Việc Làm Tại Đồng Nai Mới Nhất";
+      if (metaDescription) {
+        metaDescription.setAttribute("content", "Kênh thông tin tuyển dụng uy tín hàng đầu. Cập nhật liên tục 1000+ cơ hội việc làm tại Bình Phước (Đồng Xoài, Chơn Thành, KCN Becamex...");
+      }
+    };
+  }, []);
+
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {

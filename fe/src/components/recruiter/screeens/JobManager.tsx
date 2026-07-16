@@ -482,7 +482,7 @@ const JobManager = () => {
                       )}
                     </TableCell>
                     <TableCell className="text-gray-800 font-medium text-center whitespace-nowrap px-4 py-3 text-sm">
-                      {job.salary.toLocaleString()} Triệu
+                      {job.salary.toLocaleString()} (Triệu)
                     </TableCell>
                     <TableCell className="text-[14px] text-gray-800 font-medium text-center whitespace-nowrap px-4 py-3">
                       {job.experienceLevel} năm

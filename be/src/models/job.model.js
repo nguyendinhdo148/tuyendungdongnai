@@ -19,8 +19,9 @@ const jobSchema = new mongoose.Schema(
         type: String,
       },
     ],
+    // CHUYỂN TỪ NUMBER SANG STRING TẠI ĐÂY
     salary: {
-      type: Number,
+      type: String,
       required: true,
     },
     experienceLevel: {
@@ -82,4 +83,5 @@ const jobSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
 export const Job = mongoose.model("Job", jobSchema);

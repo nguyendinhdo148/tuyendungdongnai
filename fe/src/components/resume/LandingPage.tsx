@@ -30,6 +30,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { Helmet } from "react-helmet-async"; // THÊM IMPORT HELMET
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -100,6 +101,19 @@ const LandingPage = () => {
 
   return (
     <div className="w-full min-h-screen bg-gradient-to-b from-white to-indigo-50/20">
+      
+      {/* TỐI ƯU SEO VÀ SỬA LỖI CHÍNH TẢ CHO TRANG TẠO CV */}
+      <Helmet>
+        <title>Tạo CV Xin Việc Chuyên Nghiệp Online Miễn Phí | Tuyển Dụng Đồng Nai</title>
+        <meta 
+          name="description" 
+          content="Thiết kế CV xin việc đẹp mắt, chuyên nghiệp như designer chỉ trong 5 phút với hàng chục mẫu CV đa dạng. Tăng 80% cơ hội nhận được phỏng vấn tại các doanh nghiệp lớn khu vực Bình Phước, Đồng Nai." 
+        />
+        <meta property="og:title" content="Tạo CV Xin Việc Chuyên Nghiệp Online Miễn Phí | Tuyển Dụng Đồng Nai" />
+        <meta property="og:description" content="Tạo CV đẹp mắt, chuẩn ATS chỉ trong 5 phút với kho mẫu đa dạng. Giúp bạn tiếp cận hàng nghìn nhà tuyển dụng tại khu vực Đông Nam Bộ." />
+        <meta property="og:image" content="https://tuyendungdongnai.com/vj1.png" />
+      </Helmet>
+
       {/* Hero Section */}
       <div className="container mx-auto px-6 py-8 md:py-16">
         <header

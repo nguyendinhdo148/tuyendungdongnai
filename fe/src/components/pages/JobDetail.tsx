@@ -9,7 +9,7 @@ import { setSingleJob } from "@/redux/jobSlice";
 import { RootState } from "@/redux/store";
 import { Avatar, AvatarImage } from "../ui/avatar";
 import { motion } from "framer-motion";
-import { Helmet } from "react-helmet-async"; // THÊM IMPORT HELMET
+import { Helmet } from "react-helmet-async"; 
 import {
   CircleCheck,
   Dot,
@@ -94,38 +94,84 @@ const JobDetail = () => {
     }
   };
 
-  // Cấu hình Schema Google Jobs (Chỉ render khi singleJob đã có data)
+  // --- TỐI ƯU SCHEMA MARKUP (GOOGLE JOBS) ---
+  // Chuẩn hóa loại công việc theo format của Google
+  const getEmploymentType = (type: string) => {
+    const typeUpper = type?.toUpperCase() || "";
+    if (typeUpper.includes("FULL")) return "FULL_TIME";
+    if (typeUpper.includes("PART")) return "PART_TIME";
+    if (typeUpper.includes("FREELANCE")) return "CONTRACTOR";
+    if (typeUpper.includes("THỰC TẬP") || typeUpper.includes("INTERN")) return "INTERN";
+    return "FULL_TIME"; // Mặc định nếu không rõ
+  };
+
+  // Tính toán ValidThrough (Ngày hết hạn - Mặc định +30 ngày nếu không có trong DB)
+  const calculateValidThrough = (createdAt: string) => {
+    const date = new Date(createdAt);
+    date.setDate(date.getDate() + 30);
+    return date.toISOString();
+  };
+
   const jobSchema = singleJob ? {
     "@context": "https://schema.org/",
     "@type": "JobPosting",
     "title": singleJob.title,
-    "description": singleJob.description,
+    // Google yêu cầu description phải là HTML format
+    "description": `<div>${singleJob.description}</div>${singleJob.requirements?.length > 0 ? `<h3>Yêu cầu:</h3><ul>${singleJob.requirements.map(r => `<li>${r}</li>`).join('')}</ul>` : ''}`,
+    "identifier": {
+      "@type": "PropertyValue",
+      "name": singleJob.company?.name || "Tuyển Dụng Đồng Nai",
+      "value": singleJob._id
+    },
     "datePosted": singleJob.createdAt,
-    "employmentType": singleJob.jobType === "Full-Time" ? "FULL_TIME" : "PART_TIME",
+    "validThrough": calculateValidThrough(singleJob.createdAt),
+    "employmentType": getEmploymentType(singleJob.jobType),
     "hiringOrganization": {
       "@type": "Organization",
-      "name": singleJob.company?.name,
-      "logo": singleJob.company?.logo || "https://tuyendungdongnai.com/vj-logo.png"
+      "name": singleJob.company?.name || "Công ty chưa xác định",
+      "sameAs": singleJob.company?.website || "https://tuyendungdongnai.com",
+      "logo": singleJob.company?.logo || "https://tuyendungdongnai.com/vj1.png"
     },
     "jobLocation": {
       "@type": "Place",
       "address": {
         "@type": "PostalAddress",
         "streetAddress": singleJob.location,
+        "addressLocality": "Bình Phước", // Đánh mạnh vào keyword địa phương
         "addressRegion": "Bình Phước",
         "addressCountry": "VN"
       }
-    }
+    },
+    // Nếu lương của bạn là string ("10 - 15"), có thể linh hoạt xử lý ở đây. 
+    // Tạm thời comment baseSalary vì cần format số cụ thể (VD: 10000000)
+    /* "baseSalary": {
+      "@type": "MonetaryAmount",
+      "currency": "VND",
+      "value": {
+        "@type": "QuantitativeValue",
+        "value": 15000000,
+        "unitText": "MONTH"
+      }
+    } 
+    */
   } : null;
+  // --- KẾT THÚC CẤU HÌNH SCHEMA ---
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       
-      {/* TỐI ƯU SEO */}
+      {/* TỐI ƯU SEO HELMET */}
       {singleJob && (
         <Helmet>
-          <title>{`${singleJob.title} tại ${singleJob.company?.name} - Tuyển Dụng Đồng Nai`}</title>
-          <meta name="description" content={`Tuyển ${singleJob.title} làm việc tại ${singleJob.location}. Mức lương: ${singleJob.salary} triệu. Nhấn để xem chi tiết và ứng tuyển.`} />
+          <title>{`Tuyển dụng ${singleJob.title} tại ${singleJob.company?.name || "Bình Phước"} | Tuyển Dụng Đồng Nai`}</title>
+          <meta name="description" content={`Tuyển ${singleJob.title} làm việc tại ${singleJob.location}. Mức lương: ${singleJob.salary} triệu. Nhấn để xem chi tiết yêu cầu, phúc lợi và ứng tuyển ngay.`} />
+          
+          {/* Cấu hình Open Graph cho việc chia sẻ link lên Facebook/Zalo */}
+          <meta property="og:title" content={`Tuyển dụng ${singleJob.title} - Lương ${singleJob.salary} triệu`} />
+          <meta property="og:description" content={`Công ty ${singleJob.company?.name || ""} đang tuyển vị trí ${singleJob.title} tại ${singleJob.location}.`} />
+          {singleJob.company?.logo && <meta property="og:image" content={singleJob.company.logo} />}
+          
+          {/* Nhúng Schema JSON-LD cho Google */}
           <script type="application/ld+json">
             {JSON.stringify(jobSchema)}
           </script>
