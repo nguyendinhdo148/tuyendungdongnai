@@ -104,7 +104,6 @@ const Signup = () => {
     const newErrors: FormErrors = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const phoneNumberRegex = /^\+?\d{10,15}$/;
-    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
 
     if (!formData.fullname.trim()) {
       newErrors.fullname = "Họ và tên là bắt buộc";
@@ -124,9 +123,8 @@ const Signup = () => {
 
     if (!formData.password) {
       newErrors.password = "Mật khẩu là bắt buộc";
-    } else if (!passwordRegex.test(formData.password)) {
-      newErrors.password =
-        "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ và số";
+    } else if (formData.password.length < 8) {
+      newErrors.password = "Mật khẩu phải có ít nhất 8 ký tự";
     }
 
     if (formData.password !== formData.confirmPassword) {
