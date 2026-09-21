@@ -17,7 +17,8 @@ if (apiKey) {
 }
 
 // Đổi sang model của Groq
-const MODEL_NAME = "llama-3.3-70b-versatile"; 
+// Model Groq hiện tại
+const MODEL_NAME = "openai/gpt-oss-20b";
 const analysisCache = new Map();
 
 // --- Utility Functions ---

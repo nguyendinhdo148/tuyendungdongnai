@@ -17,7 +17,7 @@ if (apiKey) {
 }
 
 // Đổi sang model của Groq
-const MODEL_NAME = "llama-3.3-70b-versatile";
+const MODEL_NAME = "llama-3.1-8b-instant";
 const analysisCache = new Map();
 
 function withTimeout(promise, ms = 20000) {
@@ -156,7 +156,7 @@ export const analyzeMIGemini = async (req, res) => {
     const analysis = {
       ...formatMIResponse(text, miScores, dominantIntelligence, gender),
       timestamp: new Date(),
-      source: "Groq (Llama-3.3-70b-versatile)", // Cập nhật source
+      source: "Groq (llama-3.1-8b-instant)", // Cập nhật source
     };
 
     analysisCache.set(cacheKey, analysis);
@@ -260,7 +260,7 @@ export const advancedMIAnalysis = async (req, res) => {
       answerPatterns: patterns,
       version: "mi-advanced-groq-1.0", // Cập nhật version
       timestamp: new Date(),
-      source: "Groq (Llama-3.3-70b-versatile)", // Thêm source
+      source: "Groq (llama-3.1-8b-instant)", // Thêm source
     };
 
     res.json(analysis);

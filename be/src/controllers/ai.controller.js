@@ -112,7 +112,7 @@ export const resumeReview = async (req, res, next) => {
                       `;
 
       const chatRes = await openai.chat.completions.create({
-        model: "llama-3.3-70b-versatile",
+        model: "openai/gpt-oss-20b",
         messages: [{ role: "user", content: prompt }],
         temperature: 0.5,
       });
@@ -168,7 +168,7 @@ export const generate_description = async (req, res, next) => {
     `;
 
     const response = await openai.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
+      model: "openai/gpt-oss-20b",
       messages: [
         {
           role: "system",
@@ -246,7 +246,7 @@ export const chat_with_ai = async (req, res, next) => {
     const userMessage = `Câu hỏi: "${message}"`;
 
     const extractRes = await openai.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
+      model: "openai/gpt-oss-20b",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userMessage },
@@ -508,7 +508,7 @@ function generateNoResultsMessage(parsedData) {
 // Hàm gọi AI trả lời tư vấn
 async function callOpenAI(message, res) {
   const response = await openai.chat.completions.create({
-    model: "llama-3.3-70b-versatile",
+    model: "openai/gpt-oss-20b",
     messages: [
       {
         role: "system",
