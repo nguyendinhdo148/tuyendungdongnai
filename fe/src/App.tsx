@@ -4,6 +4,7 @@ import { Toaster } from "react-hot-toast";
 import Home from "./components/Home"; // Giữ lại trang chủ load tĩnh để tối ưu chỉ số LCP hiển thị tức thì
 import ScrollRestoration from "./components/pages/components/ScrollRestoration";
 import Chatbot from "./components/Chatbot";
+import RouteSeo from "./components/RouteSeo";
 
 // Component hiển thị trong lúc đợi tải các trang con (Dùng loader sẵn có của bạn)
 import FullScreenLoader from "./components/skeletons/FullScreenLoader";
@@ -97,6 +98,7 @@ function App() {
   return (
     <>
       <ScrollRestoration />
+      <RouteSeo />
       
       {/* Bọc toàn bộ Router bằng Suspense để xử lý Lazy Loading mượt mà */}
       <Suspense fallback={<FullScreenLoader />}>

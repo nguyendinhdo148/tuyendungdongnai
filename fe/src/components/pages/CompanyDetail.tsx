@@ -13,6 +13,8 @@ import CompanyLoading from "./components/CompanyDetail/CompanyLoading";
 import CompanyNotFound from "./components/CompanyDetail/CompanyNotFound";
 import "./components/CompanyDetail/CompanyAnimations.css";
 import Footer from "../Footer";
+import { Helmet } from "react-helmet-async";
+import { stripHtmlTags } from "@/components/helpers/stripHTML";
 
 const CompanyDetail = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -74,6 +76,26 @@ const CompanyDetail = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      <Helmet>
+        <title>{`${company.name} | Thông Tin Công Ty Và Việc Làm`}</title>
+        <meta
+          name="description"
+          content={
+            stripHtmlTags(company.description || "").replace(/\s+/g, " ").trim().slice(0, 160) ||
+            `Xem thông tin ${company.name} và các vị trí đang tuyển dụng tại ${company.location || "Đồng Nai"}.`
+          }
+        />
+        <meta property="og:title" content={`${company.name} | Tuyển Dụng Đồng Nai`} />
+        <meta
+          property="og:description"
+          content={
+            stripHtmlTags(company.description || "").replace(/\s+/g, " ").trim().slice(0, 160) ||
+            `Tìm hiểu thông tin và cơ hội việc làm tại ${company.name}.`
+          }
+        />
+        <meta property="og:type" content="website" />
+        {company.logo && <meta property="og:image" content={company.logo} />}
+      </Helmet>
       <Navbar />
 
       {/* Premium Hero Section */}

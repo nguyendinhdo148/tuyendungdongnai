@@ -16,6 +16,8 @@ import { RootState } from "@/redux/store";
 import { setSingleBlog } from "@/redux/blogSlice";
 import BlogDetailSkeleton from "../components/skeletons/BlogDetailSkeleton";
 import NotFound from "@/components/pages/NotFound";
+import { Helmet } from "react-helmet-async";
+import { stripHtmlTags } from "@/components/helpers/stripHTML";
 
 const BlogDetail = () => {
   const { singleBlog } = useSelector((store: RootState) => store.blog);
@@ -48,6 +50,27 @@ const BlogDetail = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
+      {singleBlog?.approval === "approved" && (
+        <Helmet>
+          <title>{`${singleBlog.title} | Blog Tuyển Dụng Đồng Nai`}</title>
+          <meta
+            name="description"
+            content={
+              stripHtmlTags(singleBlog.content).replace(/\s+/g, " ").trim().slice(0, 160) ||
+              `Đọc bài viết ${singleBlog.title} về nghề nghiệp và kinh nghiệm tìm việc.`
+            }
+          />
+          <meta property="og:title" content={singleBlog.title} />
+          <meta
+            property="og:description"
+            content={stripHtmlTags(singleBlog.content).replace(/\s+/g, " ").trim().slice(0, 160)}
+          />
+          <meta property="og:type" content="article" />
+          {singleBlog.image?.url && (
+            <meta property="og:image" content={singleBlog.image.url} />
+          )}
+        </Helmet>
+      )}
       <Navbar />
       {singleBlog && singleBlog.approval === "approved" ? (
         <div className="container mx-auto px-4 py-8">

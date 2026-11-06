@@ -135,7 +135,15 @@ const Footer = () => {
           </p>
           
           <div className="flex items-center gap-4">
-            {socialMedia.map((s, i) => (
+          <a
+            href="https://www.maximsaigon.vn/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs font-medium text-gray-600 hover:text-blue-600 transition-colors"
+          >
+            Maxim Saigon
+          </a>
+          {socialMedia.map((s, i) => (
               <a 
                 key={i} 
                 href={s.href} 
