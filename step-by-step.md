@@ -104,3 +104,9 @@ npm run dev
 ## Bước 5: Truy cập ứng dụng
 
 - http://localhost:5173
+
+## Sitemap tự cập nhật
+
+- Backend phục vụ sitemap động tại `/sitemap.xml`, gồm các trang công khai và công việc, công ty, bài viết đã được duyệt.
+- Frontend Vercel chuyển tiếp `https://www.tuyendungdongnai.com/sitemap.xml` tới backend bằng Vercel Function. Cần cấu hình biến môi trường `VITE_API_URL` trong Vercel trỏ tới backend production (ví dụ `https://<backend-host>/api/v1`).
+- Sau khi deploy, gửi `https://www.tuyendungdongnai.com/sitemap.xml` trong Google Search Console. Dữ liệu sitemap được làm mới theo cache tối đa một giờ.

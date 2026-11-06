@@ -17,6 +17,7 @@ import miRoute from "./routes/mi.route.js";
 import searchHistoryRoute from "./routes/searchHistory.route.js";
 import notificationRoute from "./routes/notification.route.js";
 import { startNotificationScheduler } from "./services/notificationService.js";
+import { getSitemap } from "./controllers/sitemap.controller.js";
 
 dotenv.config({});
 
@@ -56,6 +57,8 @@ app.use(cors(corsOptions));
 
 
 const PORT = process.env.PORT || 3000;
+
+app.get("/sitemap.xml", getSitemap);
 
 // api's
 app.use("/api/v1/user", userRoute);
