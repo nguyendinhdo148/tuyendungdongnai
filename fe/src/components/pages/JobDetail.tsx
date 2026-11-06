@@ -170,6 +170,9 @@ const JobDetail = () => {
           <meta property="og:title" content={`Tuyển dụng ${singleJob.title} - Lương ${singleJob.salary} triệu`} />
           <meta property="og:description" content={`Công ty ${singleJob.company?.name || ""} đang tuyển vị trí ${singleJob.title} tại ${singleJob.location}.`} />
           {singleJob.company?.logo && <meta property="og:image" content={singleJob.company.logo} />}
+          <meta name="twitter:title" content={`Tuyển dụng ${singleJob.title} tại ${singleJob.company?.name || "Bình Phước"}`} />
+          <meta name="twitter:description" content={`Công ty ${singleJob.company?.name || ""} đang tuyển vị trí ${singleJob.title} tại ${singleJob.location}.`} />
+          {singleJob.company?.logo && <meta name="twitter:image" content={singleJob.company.logo} />}
           
           {/* Nhúng Schema JSON-LD cho Google */}
           <script type="application/ld+json">

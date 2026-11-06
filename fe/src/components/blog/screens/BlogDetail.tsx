@@ -65,9 +65,16 @@ const BlogDetail = () => {
             property="og:description"
             content={stripHtmlTags(singleBlog.content).replace(/\s+/g, " ").trim().slice(0, 160)}
           />
-          <meta property="og:type" content="article" />
           {singleBlog.image?.url && (
             <meta property="og:image" content={singleBlog.image.url} />
+          )}
+          <meta name="twitter:title" content={singleBlog.title} />
+          <meta
+            name="twitter:description"
+            content={stripHtmlTags(singleBlog.content).replace(/\s+/g, " ").trim().slice(0, 160)}
+          />
+          {singleBlog.image?.url && (
+            <meta name="twitter:image" content={singleBlog.image.url} />
           )}
         </Helmet>
       )}

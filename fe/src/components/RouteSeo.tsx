@@ -8,6 +8,7 @@ type PageMetadata = {
   description: string;
   indexable?: boolean;
   canonicalPath?: string;
+  ogType?: "website" | "article";
 };
 
 const publicPages: Record<string, PageMetadata> = {
@@ -135,6 +136,7 @@ function getPageMetadata(pathname: string): PageMetadata {
       title: "Bài Viết Nghề Nghiệp | Tuyển Dụng Đồng Nai",
       description:
         "Đọc bài viết chia sẻ kinh nghiệm nghề nghiệp và phát triển sự nghiệp.",
+      ogType: "article",
     };
   }
 
@@ -181,7 +183,7 @@ const RouteSeo = () => {
       <link rel="canonical" href={canonicalUrl} />
       <meta property="og:title" content={metadata.title} />
       <meta property="og:description" content={metadata.description} />
-      <meta property="og:type" content="website" />
+      <meta property="og:type" content={metadata.ogType ?? "website"} />
       <meta property="og:url" content={canonicalUrl} />
       <meta property="og:site_name" content="Tuyển Dụng Đồng Nai" />
       <meta name="twitter:card" content="summary_large_image" />

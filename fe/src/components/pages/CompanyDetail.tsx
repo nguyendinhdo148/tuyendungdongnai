@@ -93,8 +93,16 @@ const CompanyDetail = () => {
             `Tìm hiểu thông tin và cơ hội việc làm tại ${company.name}.`
           }
         />
-        <meta property="og:type" content="website" />
         {company.logo && <meta property="og:image" content={company.logo} />}
+        <meta name="twitter:title" content={`${company.name} | Tuyển Dụng Đồng Nai`} />
+        <meta
+          name="twitter:description"
+          content={
+            stripHtmlTags(company.description || "").replace(/\s+/g, " ").trim().slice(0, 160) ||
+            `Tìm hiểu thông tin và cơ hội việc làm tại ${company.name}.`
+          }
+        />
+        {company.logo && <meta name="twitter:image" content={company.logo} />}
       </Helmet>
       <Navbar />
 
